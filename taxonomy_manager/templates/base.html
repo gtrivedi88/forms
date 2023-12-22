@@ -1,0 +1,14 @@
+<!doctype html>
+{% include 'head.html' %}
+<body>
+  <div class="pf-v5-c-page">
+    {% include 'masthead.html' %}
+    {% include 'menu.html' %}
+    <main class="pf-v5-c-page__main" tabindex="-1">
+      <section class="pf-v5-c-page__main-section">
+        {% block heading %}{% endblock %}
+        {% block content %}{% endblock %}
+      </section>
+    </main>
+  </div>
+</body>

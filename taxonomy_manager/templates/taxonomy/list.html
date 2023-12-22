@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block heading %}
+  <h1 class="pf-v5-c-title pf-m-4xl">Taxonomy for {{ title }}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="pf-v5-l-stack pf-m-gutter">
+  <div class="pf-v5-l-stack__item pf-v5-u-min-height" style="--pf-v5-u-min-height--MinHeight: 1ch;">
+    {% if permissions.create_permission.can() == True %}
+    <div class="pf-v5-l-flex pf-m-justify-content-flex-end ws-example-flex-border">
+      <div class="pf-v5-l-flex__item">
+        <button class="pf-v5-c-button pf-m-primary" type="button" onclick="window.location.href='/taxonomy/{{ taxonomy_name }}/create';">
+          Add Term
+        </button>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="pf-v5-l-stack__item">
+    Displaying terms {{ pagination['start_value'] + 1 }} to {% if pagination['end_value'] <= pagination['total_items'] %}{{ pagination['end_value'] + 1 }}{% else %}{{ pagination['total_items'] }}{% endif %} out of {{ pagination['total_items'] }} terms
+  </div>
+  <div class="pf-v5-l-stack__item">
+    <table
+      class="pf-v5-c-table pf-m-compact pf-m-grid-md"
+      role="grid"
+      aria-label="This is a compact table example"
+      id="table-compact"
+    >
+      <thead class="pf-v5-c-table__thead">
+        <tr class="pf-v5-c-table__tr" role="row">
+          <th class="pf-v5-c-table__th pf-m-width-40" role="columnheader" scope="col">Term</th>
+          <th class="pf-v5-c-table__th pf-m-width-40" role="columnheader" scope="col">Attribute</th>
+          <th class="pf-v5-c-table__th pf-m-width-20" role="columnheader" scope="col">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody class="pf-v5-c-table__tbody" role="row">
+      {% for term in taxonomy %}
+        <tr class="pf-v5-c-table__tr" role="row">
+          <td class="pf-v5-c-table__td" role="cell" data-label="Taxonomy">{{ term['term'] }}</td>
+          <td class="pf-v5-c-table__td" role="cell" data-label="Taxonomy">{{ term['doc_attribute'] }}</td>
+          <td class="pf-v5-c-table__td" role="cell" data-label="Action">
+            {% if permissions.edit_taxonomy_permission.can() == True %}
+            <a href="/taxonomy/{{ taxonomy_name }}/{{ term['uuid'] }}/edit"><i class="fa-solid fa-pen-to-square"></i></a>
+            {% endif %}
+            {% if permissions.delete_permission.can() == True %}
+            <a href="/taxonomy/{{ taxonomy_name }}/{{ term['uuid'] }}/delete"><i class="fa-solid fa-trash-can"></i></a>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div class="pf-v5-c-pagination pf-m-bottom">
+      <nav
+        class="pf-v5-c-pagination__nav"
+        aria-label="Pagination nav - bottom example"
+      >
+        <div class="pf-v5-c-pagination__nav-control pf-m-first">
+          <button
+            class="pf-v5-c-button pf-m-plain"
+            type="button"
+            {% if pagination['current_page'] == 1 %} disabled {% endif %}
+            aria-label="Go to first page"
+            onclick="window.location.href='/taxonomy/{{ taxonomy_name }}/1';"
+          >
+            <i class="fas fa-angle-double-left" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="pf-v5-c-pagination__nav-control pf-m-prev">
+          <button
+            class="pf-v5-c-button pf-m-plain"
+            type="button"
+            {% if pagination['current_page'] <= 1 %} disabled {% endif %}
+            aria-label="Go to previous page"
+            onclick="window.location.href='/taxonomy/{{ taxonomy_name }}/{{ pagination["current_page"] - 1 }}';"
+          >
+            <i class="fas fa-angle-left" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="pf-v5-c-pagination__nav-page-select">
+          <span aria-hidden="true">{{ pagination['current_page'] }} of {{ pagination['total_pages'] }}</span>
+        </div>
+        <div class="pf-v5-c-pagination__nav-control pf-m-next">
+          <button
+            class="pf-v5-c-button pf-m-plain"
+            type="button"
+            {% if pagination['current_page'] >= pagination['total_pages']  %} disabled {% endif %}
+            aria-label="Go to next page"
+            onclick="window.location.href='/taxonomy/{{ taxonomy_name }}/{{ pagination["current_page"] + 1 }}';"
+          >
+            <i class="fas fa-angle-right" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="pf-v5-c-pagination__nav-control pf-m-last">
+          <button
+            class="pf-v5-c-button pf-m-plain"
+            type="button"
+            {% if pagination['current_page'] >= pagination['total_pages']  %} disabled {% endif %}
+            aria-label="Go to last page"
+            onclick="window.location.href='/taxonomy/{{ taxonomy_name }}/{{ pagination["total_pages"] }}';"
+          >
+            <i class="fas fa-angle-double-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </div>
+</div>
+{% endblock %}

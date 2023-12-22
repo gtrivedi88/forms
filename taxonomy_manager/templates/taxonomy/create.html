@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block heading %}
+  <h1 class="pf-v5-c-title pf-m-4xl">Add new term for {{ title }} taxonomy</h1>
+{% endblock %}
+
+{% block content %}
+<form class="pf-v5-c-form" method="post">
+
+  {% for field in form %}
+  <div class="pf-v5-c-form__group">
+    <div class="pf-v5-c-form__group-label">
+      <label class="pf-v5-c-form__label" for="form-vertical-name">
+        <span class="pf-v5-c-form__label-text">{{ field.label }}</span>{% if "required" in field.flags %}&nbsp;<span class="pf-v5-c-form__label-required" aria-hidden="true">&#42;</span>{% endif %}
+      </label>
+    </div>
+    <div class="pf-v5-c-form__group-control">
+      <span class="pf-v5-c-form-control{% if "required" in field.flags %} pf-m-required{% endif %}">
+        {{ field }}
+      </span>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="pf-v5-c-form__group pf-m-action">
+    <div class="pf-v5-c-form__actions">
+      <button class="pf-v5-c-button pf-m-primary" type="submit">Submit form</button>
+      <button class="pf-v5-c-button pf-m-link" type="reset">Reset form</button>
+    </div>
+  </div>
+</form>
+{% endblock %}
