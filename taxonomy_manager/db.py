@@ -210,3 +210,21 @@ if __name__ == '__main__':
 <p>View a product information.</p>
 {% endblock %}
 
+
+
+
+class Product(db.Model):
+    __tablename__ = 'product'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "product_id"
+    __term__ = "product_name"
+    __hidden__ = True
+    id = db.Column(db.String(255), primary_key=True, default=str(uuid.uuid4()))
+    product_name = db.Column(db.String(255), nullable=False)
+    product_description = db.Column(db.String)
+    upcoming_change = db.Column(db.Boolean)
+    deprecated = db.Column(db.Boolean)
+    product_status = db.Column(db.String(255))
+    last_updated = db.Column(db.Date)
+    created = db.Column(db.Date)
+    product_status_detail = db.Column(db.String(255))
