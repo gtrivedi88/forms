@@ -1,19 +1,80 @@
-559799df-404e-4c36-872e-65015cadc06f	Application services
-569de932-3061-4917-832c-ae75e082feaf	Cloud
-acbfe7c2-7801-41cb-8f8d-70c20ecb9d6c	Community
-642e5b10-2d42-4d4c-9113-cbb10ff8aea6	Component
-56472144-7405-4a21-ba7d-74b56bbd11ef	Consulting
-80df1dd4-46bb-47bd-8770-4528e5c2609b	Data services
-b4655f26-9893-43d0-8684-a91b643c6e4f	Linux
-76cb2f8f-b57c-4f2a-91de-d8ad43343893	Linux platforms
-223beeb1-77ec-4764-bc08-a8b399c7fc9e	Management
-d6d629d3-0449-4fbf-a75d-bff8a056b0a3	Market product
-95ce5d8c-f909-44cb-b657-2db9d0a20752	Offering
-74b57588-78cb-4040-b38c-553dc2b1a43c	Partner
-8de5ac11-f04e-4424-ae38-9cfab981d9f7	Support
-76864c50-6e68-4ddf-8576-5300484ac2eb	Training and Certification
-c03d0fbb-4869-4a7e-b8fc-ed0d6142c48a	Variant
-5219ce73-576f-47c6-8955-25b0de287ad5	Virtualization
-4337a1ce-e04c-4881-8893-5bab1464bd6c	Professional services
-a25b53ad-5c49-41f3-84ae-36f646100bba	Programs
-018bf74b-841f-7e18-91fc-80c3a440187a	Edge
+Traceback (most recent call last):
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/flask/app.py", line 1478, in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/flask/app.py", line 1458, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/flask/app.py", line 1455, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/flask/app.py", line 869, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/flask/app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/flask/app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/git/gitlab/opl-ui/app.py", line 26, in add_product
+    product_portfolios = ProductPortfolio.query.all()
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 289, in _set_entities
+    coercions.expect(
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/sql/coercions.py", line 406, in expect
+    insp._post_inspect
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 1260, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 2707, in _post_inspect
+    self._check_configure()
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 2386, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 4199, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 4240, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 2403, in _post_configure_properties
+    prop.init()
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/interfaces.py", line 579, in init
+    self.do_init()
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/relationships.py", line 1637, in do_init
+    self._setup_join_conditions()
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/relationships.py", line 1882, in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+                                ^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/relationships.py", line 2306, in __init__
+    self._determine_joins()
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/relationships.py", line 2419, in _determine_joins
+    self.primaryjoin = join_condition(
+                       ^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/sql/util.py", line 123, in join_condition
+    return Join._join_condition(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/sql/selectable.py", line 1341, in _join_condition
+    constraints = cls._joincond_scan_left_right(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/sql/selectable.py", line 1450, in _joincond_scan_left_right
+    col = fk.get_referent(b)
+          ^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 3022, in get_referent
+    return table.columns.corresponding_column(self.column)  # type: ignore
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 1146, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 3159, in column
+    return self._resolve_column()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 3198, in _resolve_column
+    return self._link_to_col_by_colstring(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 3120, in _link_to_col_by_colstring
+    raise exc.NoReferencedColumnError(
+sqlalchemy.exc.NoReferencedColumnError: Could not initialize target column for ForeignKey 'brand_opl.product.id' on table 'product_portfolio_map': table 'product' has no column named 'id'
