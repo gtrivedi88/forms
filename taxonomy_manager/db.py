@@ -1,7 +1,19 @@
-sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column product_notes.id does not exist
-LINE 1: ..., p1, sen_counter) ORDER BY sen_counter RETURNING brand_opl....
-                                                             ^
+class ProductNotes(db.Model):
+    __tablename__ = 'product_notes'
+    __table_args__ = {'schema': 'brand_opl'}
 
-[SQL: INSERT INTO brand_opl.product_notes (product_id, product_note) SELECT p0::VARCHAR, p1::VARCHAR FROM (VALUES (%(product_id__0)s, %(product_note__0)s, 0), (%(product_id__1)s, %(product_note__1)s, 1), (%(product_id__2)s, %(product_note__2)s, 2)) AS imp_sen(p0, p1, sen_counter) ORDER BY sen_counter RETURNING brand_opl.product_notes.id, brand_opl.product_notes.id AS id__1]
-[parameters: {'product_note__0': 'O', 'product_id__0': '06a49073-0cde-461a-bc96-d0d38cc456df', 'product_note__1': 'l', 'product_id__1': '06a49073-0cde-461a-bc96-d0d38cc456df', 'product_note__2': 'a', 'product_id__2': '06a49073-0cde-461a-bc96-d0d38cc456df'}]
-(Background on this error at: https://sqlalche.me/e/20/f405)
+    product_id = db.Column(db.String(255), db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    product_note = db.Column(db.String(255), db.ForeignKey('brand_opl.product_notes.product_id'), primary_key=True, nullable=False)
+
+
+    product_notes = db.relationship('ProductNotes', backref='product', lazy='dynamic')
+
+
+        # Add Product Notes
+        selected_notes = form.product_notes.data
+        for note in selected_notes:
+            product_note = ProductNotes(product=new_product.product_id, product_note=note)
+            db.session.add(product_note)
+
+
+AttributeError: 'str' object has no attribute '_sa_instance_state'
