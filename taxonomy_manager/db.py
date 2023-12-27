@@ -1,19 +1,4 @@
-class ProductNotes(db.Model):
-    __tablename__ = 'product_notes'
-    __table_args__ = {'schema': 'brand_opl'}
-
-    product_id = db.Column(db.String(255), db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
-    product_note = db.Column(db.String(255), db.ForeignKey('brand_opl.product_notes.product_id'), primary_key=True, nullable=False)
-
-
-    product_notes = db.relationship('ProductNotes', backref='product', lazy='dynamic')
-
-
-        # Add Product Notes
-        selected_notes = form.product_notes.data
-        for note in selected_notes:
-            product_note = ProductNotes(product=new_product.product_id, product_note=note)
-            db.session.add(product_note)
-
-
-AttributeError: 'str' object has no attribute '_sa_instance_state'
+sqlalchemy.exc.ProgrammingError: (psycopg2.ProgrammingError) can't adapt type 'Product'
+[SQL: INSERT INTO brand_opl.product_notes (product_id, product_note) VALUES (%(product_id__0)s, %(product_note__0)s), (%(product_id__1)s, %(product_note__1)s), (%(product_id__2)s, %(product_note__2)s)]
+[parameters: {'product_note__0': 'O', 'product_id__0': <Product af409531-408d-4fc3-86ee-f41849e04eb3>, 'product_note__1': 'l', 'product_id__1': <Product af409531-408d-4fc3-86ee-f41849e04eb3>, 'product_note__2': 'd', 'product_id__2': <Product af409531-408d-4fc3-86ee-f41849e04eb3>}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
