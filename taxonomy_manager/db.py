@@ -1,103 +1,33 @@
-{% extends 'base.html' %}
-
-{% block heading %}
-<h1 class="pf-v5-c-title pf-m-4xl">Welcome to OPL</h1>
-{% endblock %}
-
-{% block content %}
-<p>Add a product information.</p>
-
-<br><br>
-
-{% if show_form %}
-
-<p style="color:red;">Fields marked with * are mandatory.</p>
-
-<form method="post" action="{{ url_for('add_product') }}">
-    {{ form.hidden_tag() }}
-
-    <label for="{{ form.product_name.id }}">{{ form.product_name.label }}</label>
-    {{ form.product_name() }}
-
-    <br><br>
-
-    <label for="{{ form.product_description.id }}">{{ form.product_description.label }}</label>
-    {{ form.product_description(rows=4, cols=50) }}
-
-    <br><br>
-    
-    <label for="{{ form.product_portfolio.id }}">{{ form.product_portfolio.label }}</label>
-    <select id="{{ form.product_portfolio.id }}" name="{{ form.product_portfolio.name }}" multiple>
-        {% for value, label in form.product_portfolio.choices %}
-        <option value="{{ value }}">{{ label }}</option>
-        {% endfor %}
-    </select>
-
-    <br><br>
-    
-    <label for="{{ form.product_notes.id }}">{{ form.product_notes.label }}</label>
-    {{ form.product_notes() }}
-
-    <br><br>
-
-    <label for="{{ form.product_type.id }}">{{ form.product_type.label }}</label>
-    <select id="{{ form.product_type.id }}" name="{{ form.product_type.name }}" multiple>
-        {% for value, label in form.product_type.choices %}
-        <option value="{{ value }}">{{ label }}</option>
-        {% endfor %}
-    </select>
-    
-    <br><br>
-
-    <label for="{{ form.product_references.id }}">{{ form.product_references.label }}</label>
-    {% for field in form.product_references %}
-    {{ field }}
-    {% endfor %}
-
-    <br><br>
-
-    <label for="{{ form.product_descriptions.id }}">{{ form.product_descriptions.label }}</label>
-    {% for field in form.product_descriptions %}
-    {{ field }}
-    {% endfor %}
-
-    <br><br>
-
-    <div class="checkbox-row">
-        {{ form.deprecated() }}
-        <label for="{{ form.deprecated.id }}">{{ form.deprecated.label }}</label>
-    </div>
-    
-    <br><br>
-
-    <div class="checkbox-row">
-        {{ form.upcoming_change() }}
-        <label for="{{ form.upcoming_change.id }}">{{ form.upcoming_change.label }}</label>
-    </div>
-
-    <br><br>
-
-    <label for="{{ form.product_status.id }}">{{ form.product_status.label }}</label>
-    <select id="{{ form.product_status.id }}" name="{{ form.product_status.name }}">
-        {% for value, label in form.product_status.choices %}
-        <option value="{{ value }}">{{ label }}</option>
-        {% endfor %}
-    </select>
-    
-    <br><br>
-
-    <label for="{{ form.product_status_detail.id }}">{{ form.product_status_detail.label }}</label>
-    {{ form.product_status_detail(rows=4, cols=50) }}
-
-    <br><br>
-
-    {{ form.submit(style="background-color: #1a73e8; color: #ffffff;") }}
-</form>
-{% endif %}
-
-{% if success_message %}
-<p class="success">{{ success_message }}</p>
-<br><br>
-<a href="{{ url_for('add_product') }}" class="button-link">Add more products</a>
-{% endif %}
-{% endblock %}
+Traceback (most recent call last):
+  File "/home/gtrivedi/git/gitlab/opl-ui/app.py", line 4, in <module>
+    from models import db, Product, ProductType, ProductTypeMap, ProductPortfolios, ProductPortfolioMap, ProductNotes, ProductReference
+  File "/home/gtrivedi/git/gitlab/opl-ui/models.py", line 77, in <module>
+    class ProductReference(db.Model):
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/flask_sqlalchemy/model.py", line 92, in __init__
+    super().__init__(name, bases, d, **kwargs)
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/flask_sqlalchemy/model.py", line 144, in __init__
+    super().__init__(name, bases, d, **kwargs)
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/decl_api.py", line 195, in __init__
+    _as_declarative(reg, cls, dict_)
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/decl_base.py", line 247, in _as_declarative
+    return _MapperConfig.setup_mapping(registry, cls, dict_, None, {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/decl_base.py", line 328, in setup_mapping
+    return _ClassScanMapperConfig(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/decl_base.py", line 582, in __init__
+    self._early_mapping(mapper_kw)
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/decl_base.py", line 369, in _early_mapping
+    self.map(mapper_kw)
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/decl_base.py", line 1957, in map
+    mapper_cls(self.cls, self.local_table, **self.mapper_args),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in __init__
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/util/deprecations.py", line 281, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 853, in __init__
+    self._configure_pks()
+  File "/home/gtrivedi/.local/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py", line 1637, in _configure_pks
+    raise sa_exc.ArgumentError(
+sqlalchemy.exc.ArgumentError: Mapper Mapper[ProductReference(product_references)] could not assemble any primary key columns for mapped table 'product_references'
