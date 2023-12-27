@@ -1,25 +1,11 @@
-sqlalchemy.exc.NoForeignKeysError: Could not determine join condition between parent/child tables on relationship ProductPortfolioMap.product_notes - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+/home/gtrivedi/git/gitlab/opl-ui/app.py:79: SAWarning: Identity map already had an identity for (<class 'models.ProductNotes'>, ('a15fe8a0-9be0-43ff-a32a-dae88a04838f',), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+  db.session.commit()
 
 
-
-from db import db
+from flask_sqlalchemy import SQLAlchemy
 import uuid
-from datetime import datetime
 
-# Below are the models for each taxonomy
-# They use the standard SQLAlchemy modeling, but with a few added bits and pieces:
-#   __tablename__       SQLAlchemy attribute to map the model to a specific table
-#   __table_args__      SQLAlchemy attribute to set options for the model.
-#                       Mostly used to define the PGSQL schema.
-#   __uuid__            Defines the field to use as the UUID. Since the UUID
-#                       field name is different for each model, this is a way to
-#                       standardize the field names
-#   __term__            Defines the field to use as the term name. This is
-#                       similar in function as the UUID.
-
-# OPL DATA MODELS
-
-# Define the OplPartner model (commented out for brevity)
+db = SQLAlchemy()
 
 class Product(db.Model):
     __tablename__ = 'product'
@@ -28,7 +14,6 @@ class Product(db.Model):
     __term__ = "product_name"
     __hidden__ = True
 
-    # Product fields
     product_id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
     product_name = db.Column(db.String(255), nullable=False)
     product_description = db.Column(db.String)
@@ -37,17 +22,17 @@ class Product(db.Model):
     product_status = db.Column(db.String(255))
     last_updated = db.Column(db.Date)
     created = db.Column(db.Date)
-    product_status = db.Column(db.String(255))
     product_status_detail = db.Column(db.String(255))
 
     # Relationships
     product_type_maps = db.relationship('ProductTypeMap', backref='product', lazy='dynamic')
+    product_portfolios = db.relationship('ProductPortfolioMap', backref='product', lazy='dynamic')
+    product_notes = db.relationship('ProductNotes', backref='product', lazy='dynamic')
 
 class ProductType(db.Model):
     __tablename__ = 'product_types'
     __table_args__ = {'schema': 'brand_opl'}
 
-    # ProductType fields
     type_id = db.Column(db.String, primary_key=True)
     product_type = db.Column(db.String(255), nullable=False)
 
@@ -55,7 +40,6 @@ class ProductTypeMap(db.Model):
     __tablename__ = 'product_types_map'
     __table_args__ = {'schema': 'brand_opl'}
 
-    # ProductTypeMap fields
     product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
     type_id = db.Column(db.String, db.ForeignKey('brand_opl.product_types.type_id'), primary_key=True)
 
@@ -63,36 +47,22 @@ class ProductPortfolios(db.Model):
     __tablename__ = 'product_portfolios'
     __table_args__ = {'schema': 'brand_opl'}
 
-    # ProductPortfolios fields
     category_id = db.Column(db.String, primary_key=True)
     category_name = db.Column(db.String(255), nullable=False)
-
-    # Relationships
-    product_portfolio_map = db.relationship('ProductPortfolioMap', backref='portfolio', lazy='dynamic')
 
 class ProductPortfolioMap(db.Model):
     __tablename__ = 'product_portfolio_map'
     __table_args__ = {'schema': 'brand_opl'}
 
-    # ProductPortfolioMap fields
     product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
     category_id = db.Column(db.String, db.ForeignKey('brand_opl.product_portfolios.category_id'), primary_key=True)
-
-
-
-   # Add a relationship to the ProductNotes model
-    product_notes = db.relationship('ProductNotes', backref='product', lazy='dynamic')
 
 class ProductNotes(db.Model):
     __tablename__ = 'product_notes'
     __table_args__ = {'schema': 'brand_opl'}
 
-    # ProductNotes fields
     product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
-    product_note = db.Column(db.String(255), nullable=False)
-
-    def __init__(self, product_note):
-        self.product_note = product_note
+    product_note = db.Column(db.String(255), db.ForeignKey('brand_opl.product_notes.product_id'), primary_key=True)
 
 
 
@@ -171,8 +141,8 @@ def add_product():
         # Add Product Notes
         selected_notes = form.product_notes.data
         for note in selected_notes:
-            product_note = ProductNotes(product_note=note)
-            new_product.product_notes.append(product_note)
+            product_notes = ProductNotes(product_id=new_product.product_id, product_note=note)
+            db.session.add(product_notes)
         
         db.session.commit()
 
