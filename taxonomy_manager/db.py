@@ -1,26 +1,8 @@
-from flask import Flask, render_template, flash
-from flask_sqlalchemy import SQLAlchemy
-from forms import MyForm
-from models import db, Product, ProductType, ProductTypeMap, ProductPortfolios, ProductPortfolioMap, ProductNotes
-from datetime import datetime
+sqlalchemy.orm.exc.FlushError: Instance <ProductNotes at 0x7f6fc6b450d0> has a NULL identity key.  If this is an auto-generated value, check that the database table allows generation of new primary key values, and that the mapped Column object is configured to expect these generated values.  Ensure also that this flush() is not occurring at an inappropriate time, such as within a load() event.
 
-# For troubleshooting
-import logging
-logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-app = Flask(__name__)
-<data>
 
-# Initialize the database
-db.init_app(app)
 
-# Define the index route
-@app.route('/', methods=['GET'])
-def index():
-    return render_template('index.html')
-
-# Define the route to add a product
 @app.route('/opl/add-product', methods=['GET', 'POST'])
 def add_product():
     form = MyForm()
@@ -53,10 +35,6 @@ def add_product():
             product_status_detail=form.product_status_detail.data
         )
 
-        # Add and commit the new product to the database
-        db.session.add(new_product)
-        db.session.commit()
-
         # Add product type mapping
         selected_product_types = form.product_type.data
         for product_type_id in selected_product_types:
@@ -73,36 +51,9 @@ def add_product():
         selected_notes = form.product_notes.data
         for note in selected_notes:
             product_notes = ProductNotes(product_id=new_product.product_id, product_note=note)
-            db.session.add(product_notes)
+            if product_notes not in db.session:
+                db.session.add(product_notes)
         
+        # Add and commit the new product to the database
+        db.session.add(new_product)
         db.session.commit()
-
-        # Format dates for display
-        formatted_created_date = created_date.strftime('%Y-%m-%d')
-        formatted_last_updated_date = created_date.strftime('%Y-%m-%d')
-
-        # Set success message and hide the form
-        success_message = f'Successfully added the product: {form.product_name.data}'
-        show_form = False
-
-    return render_template('opl/add.html', form=form, success_message=success_message,
-                           show_form=show_form, formatted_created_date=formatted_created_date,
-                           formatted_last_updated_date=formatted_last_updated_date)
-
-# Define the route to edit a product
-@app.route('/opl/edit-product', methods=['GET', 'POST'])
-def edit_product():
-    form = MyForm()
-
-    if form.validate_on_submit():
-        # Logic for editing the product
-        return render_template('opl/edit.html', form=form, success_message=f'Successfully edited: {form.product_id.data}, {form.product_name.data}')
-
-    return render_template('opl/edit.html', form=form)
-
-# Run the application if executed directly
-if __name__ == '__main__':
-    with app.app_context():
-        # Create all database tables
-        db.create_all()
-    app.run(debug=True)
