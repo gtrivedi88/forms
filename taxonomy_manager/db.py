@@ -1,59 +1,103 @@
-sqlalchemy.orm.exc.FlushError: Instance <ProductNotes at 0x7f6fc6b450d0> has a NULL identity key.  If this is an auto-generated value, check that the database table allows generation of new primary key values, and that the mapped Column object is configured to expect these generated values.  Ensure also that this flush() is not occurring at an inappropriate time, such as within a load() event.
+{% extends 'base.html' %}
 
+{% block heading %}
+<h1 class="pf-v5-c-title pf-m-4xl">Welcome to OPL</h1>
+{% endblock %}
 
+{% block content %}
+<p>Add a product information.</p>
 
+<br><br>
 
-@app.route('/opl/add-product', methods=['GET', 'POST'])
-def add_product():
-    form = MyForm()
-    success_message = None
-    show_form = True
+{% if show_form %}
 
-    # Initialize the variables here
-    formatted_created_date = None
-    formatted_last_updated_date = None
+<p style="color:red;">Fields marked with * are mandatory.</p>
 
-    # Populate product type choices
-    form.product_type.choices = [(ptype.type_id, ptype.product_type) for ptype in ProductType.query.all()]
+<form method="post" action="{{ url_for('add_product') }}">
+    {{ form.hidden_tag() }}
 
-    # Populate product portfolio choices
-    form.product_portfolio.choices = [(portfolio.category_id, portfolio.category_name) for portfolio in ProductPortfolios.query.all()]
+    <label for="{{ form.product_name.id }}">{{ form.product_name.label }}</label>
+    {{ form.product_name() }}
 
-    if form.validate_on_submit():
-        # Logic for adding a new product
-        created_date = datetime.now()
+    <br><br>
 
-        # Create a new product instance
-        new_product = Product(
-            product_name=form.product_name.data,
-            product_description=form.product_description.data,
-            upcoming_change=form.upcoming_change.data,
-            deprecated=form.deprecated.data,
-            product_status=form.product_status.data,
-            last_updated=created_date,
-            created=created_date,
-            product_status_detail=form.product_status_detail.data
-        )
+    <label for="{{ form.product_description.id }}">{{ form.product_description.label }}</label>
+    {{ form.product_description(rows=4, cols=50) }}
 
-        # Add product type mapping
-        selected_product_types = form.product_type.data
-        for product_type_id in selected_product_types:
-            product_type_map = ProductTypeMap(product_id=new_product.product_id, type_id=product_type_id)
-            db.session.add(product_type_map)
+    <br><br>
+    
+    <label for="{{ form.product_portfolio.id }}">{{ form.product_portfolio.label }}</label>
+    <select id="{{ form.product_portfolio.id }}" name="{{ form.product_portfolio.name }}" multiple>
+        {% for value, label in form.product_portfolio.choices %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+    </select>
 
-        # Add product portfolio mapping
-        selected_portfolios = form.product_portfolio.data
-        for portfolio_id in selected_portfolios:
-            product_portfolio_map = ProductPortfolioMap(product_id=new_product.product_id, category_id=portfolio_id)
-            db.session.add(product_portfolio_map)
-        
-        # Add Product Notes
-        selected_notes = form.product_notes.data
-        for note in selected_notes:
-            product_notes = ProductNotes(product_id=new_product.product_id, product_note=note)
-            if product_notes not in db.session:
-                db.session.add(product_notes)
-        
-        # Add and commit the new product to the database
-        db.session.add(new_product)
-        db.session.commit()
+    <br><br>
+    
+    <label for="{{ form.product_notes.id }}">{{ form.product_notes.label }}</label>
+    {{ form.product_notes() }}
+
+    <br><br>
+
+    <label for="{{ form.product_type.id }}">{{ form.product_type.label }}</label>
+    <select id="{{ form.product_type.id }}" name="{{ form.product_type.name }}" multiple>
+        {% for value, label in form.product_type.choices %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+    </select>
+    
+    <br><br>
+
+    <label for="{{ form.product_references.id }}">{{ form.product_references.label }}</label>
+    {% for field in form.product_references %}
+    {{ field }}
+    {% endfor %}
+
+    <br><br>
+
+    <label for="{{ form.product_descriptions.id }}">{{ form.product_descriptions.label }}</label>
+    {% for field in form.product_descriptions %}
+    {{ field }}
+    {% endfor %}
+
+    <br><br>
+
+    <div class="checkbox-row">
+        {{ form.deprecated() }}
+        <label for="{{ form.deprecated.id }}">{{ form.deprecated.label }}</label>
+    </div>
+    
+    <br><br>
+
+    <div class="checkbox-row">
+        {{ form.upcoming_change() }}
+        <label for="{{ form.upcoming_change.id }}">{{ form.upcoming_change.label }}</label>
+    </div>
+
+    <br><br>
+
+    <label for="{{ form.product_status.id }}">{{ form.product_status.label }}</label>
+    <select id="{{ form.product_status.id }}" name="{{ form.product_status.name }}">
+        {% for value, label in form.product_status.choices %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+    </select>
+    
+    <br><br>
+
+    <label for="{{ form.product_status_detail.id }}">{{ form.product_status_detail.label }}</label>
+    {{ form.product_status_detail(rows=4, cols=50) }}
+
+    <br><br>
+
+    {{ form.submit(style="background-color: #1a73e8; color: #ffffff;") }}
+</form>
+{% endif %}
+
+{% if success_message %}
+<p class="success">{{ success_message }}</p>
+<br><br>
+<a href="{{ url_for('add_product') }}" class="button-link">Add more products</a>
+{% endif %}
+{% endblock %}
