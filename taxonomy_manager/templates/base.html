@@ -1,14 +1,184 @@
-<!doctype html>
-{% include 'head.html' %}
-<body>
-  <div class="pf-v5-c-page">
-    {% include 'masthead.html' %}
-    {% include 'menu.html' %}
-    <main class="pf-v5-c-page__main" tabindex="-1">
-      <section class="pf-v5-c-page__main-section">
-        {% block heading %}{% endblock %}
-        {% block content %}{% endblock %}
-      </section>
-    </main>
-  </div>
-</body>
+Enhancing OpenShift Pipelines with Software Supply Chain Security Use Cases
+
+The PipelineRun Details view in the Developer or Administrator perspective of the web console provides an enhanced visual representation of PipelinesRuns within a project. 
+
+For a PipelineRun Details, you can now view:
+
+A signed badge indicating the security and provenance of the PipelineRun
+An Output tab to view the PipelineRun results
+Vulnerabilities within a project
+Link to view and download Software bill of materials (SBOMs)
+
+Viewing signed badge
+If a pipelinerun is signed by chains then a signed badge appears next to the pipelinerun name indicating the security and provenance of the PipelineRun.
+
+This happens because of the annotation that the operator automatically adds after in the yaml file after reviewing the PipelineRun for security and provenance
+
+annotations:
+   chains.tekton.dev/signed: 'true'
+
+
+View Output
+
+The PipelineRun details page also displays an Output tab to view the PipelineRun results
+
+
+
+Viewing Vulnerabilities
+The Vulnerabilities row in the PipelineRun details page of the web console provides a visual representation of all the vulnerabilities within a project, such as, critical, high, medium , and low.
+
+Additionally, you can review the Vulnerabilities column in the PipelineRuns view.
+
+.Prerequisites
+You have logged in to the web console.
+
+
+You have the appropriate roles and permissions in a project to create applications and other workloads in OpenShift Container Platform.
+
+
+You are in the Administrator perspective.
+
+
+.Procedure
+In the Administrator perspective, switch to the relevant project, for example, my-petclinic.
+Optional: If you do not have a vulnerability scan task yaml file, create one in the following format.
+Example vulnerability scan task
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: vulnerability-scan  # <1>
+  annotations:
+	task.output.location: results  # <2>
+	task.results.format: application/json
+	task.results.key: SCAN_OUTPUT
+spec:
+  results:
+	- description: CVE result format  # <3>
+  	name: SCAN_OUTPUT
+  	type: string
+  steps:
+	- name: scan  # <4>
+  	image: quay.io/your-tool-image  # <5>
+  	env:
+    	- name: TOOL_ENV_VAR1  # <6>
+      	valueFrom:
+        	secretKeyRef:
+          	key: tool_var1
+          	name: tool-secrets
+  	script: |  # <7>
+    	#!/bin/sh
+
+    	# Tool-specific setup commands
+    	# ... (replace with actual setup commands for your tool)
+
+    	# Execute the vulnerability scan and store the results in the .json output format (replace with your tool's command)
+    	your-tool-command --output json > scan_output.json
+    	jq -rce \ <8>
+      	'{vulnerabilities:{
+        	critical: (.result.summary.CRITICAL),
+        	high: (.result.summary.IMPORTANT),
+        	medium: (.result.summary.MODERATE),
+        	low: (.result.summary.LOW)
+      	}}' scan_output.json | tee $(results.SCAN_OUTPUT.path)
+
+<.>  The name of your task.
+<.>  The location for storing the task outputs
+<.>  The description of the result.
+<.> The name of the vulnerability scanning tool that you have used. For example, you can use Roxctl. 
+<.> The location of the actual image containing the scan tool.
+<.> The tool-specific environment variables
+<.>     Set up the shell script to be executed. You must ensure that the scan results are outputted in the json format. For example, scan_output.json.
+<.>  Extract vulnerability summary (adjust jq command for different JSON structures).
+If you have an existing vulnerability scan task yaml file, update it to ensure that it stores the output in the .json file and extracts the vulnerability summary in the following format:
+	jq -rce \ <.>
+      	'{vulnerabilities:{
+        	critical: (.result.summary.CRITICAL),
+        	high: (.result.summary.IMPORTANT),
+        	medium: (.result.summary.MODERATE),
+        	low: (.result.summary.LOW)
+      	}}' scan_output.json | tee $(results.SCAN_OUTPUT.path)
+
+	<.>  Extract vulnerability summary (adjust jq command for different JSON structures).
+	
+Update your piplelinerun to add vulnerabilities specifications:
+	…
+spec:
+  results:
+	- description: The common vulnerabilities and exposures (CVE) result
+  	name: SCAN_OUTPUT
+  	value: $(tasks.vulnerability-scan.results.SCAN_OUTPUT)
+
+.Verification
+Either in the Developer or Administrator perspective, view the Vulnerabilities row in the PipelineRun details page. Additionally, you can view the Vulnerabilities column in the PipelineRuns view page.
+
+Viewing a signed badge
+The PipelineRun details page of the web console now displays a signed badge indicating the security and the provenance of the PipelineRun.
+
+
+
+
+
+Viewing and Downloading SBOMs
+The PipelineRun details page of the web console now provides an option to view and download SBOMS (Software build of Materials). A software bill of materials (SBOM) provides greater transparency for your software supply chain. It lists all the software libraries that a component uses. Those libraries can enable specific functionality or facilitate development.
+
+You can use an SBOM to better understand the composition of your software, identify vulnerabilities, and assess the potential impact of any security issues that may arise. Also, to comply with cybersecurity regulations, you might need to provide your customers with the SBOM for your application’s components.
+
+
+.Prerequisites
+You have logged in to the web console.
+
+
+You have the appropriate roles and permissions in a project to create applications and other workloads in OpenShift Container Platform.
+
+
+You are in the Administrator perspective.
+
+
+.Procedure
+In the Administrator perspective, switch to the relevant project, for example, my-petclinic.
+Add a task to create the SBOM link. 
+	Example SBOM link task
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: sbom-task
+  annotations:
+	task.output.location: results
+	task.results.format: application/text
+	task.results.key: LINK_TO_SBOM
+spec:
+  results:
+  	- name: LINK_TO_SBOM
+    	description: Contains the SBOM link
+  steps:
+	- name: print-sbom-results
+  	image: quay.io/redhat-appstudio/syft:v0.96.0
+  	script: |
+    	#!/bin/sh
+    	syft version
+    	syft quay.io/bsutter/quarkus-demo:v2 --output cyclonedx-json=sbom-image.json
+    	echo 'BEGIN SBOM'
+    	cat sbom-image.json
+    	echo 'END SBOM'
+    	echo 'quay.io/redhat-user-workloads/karthik-jk-tenant/node-express-hello/node-express-hello:build-8e536-1692702836' | tee $(results.LINK_TO_SBOM.path)
+Update the PipelineRun to identify which Task is the SBOM link emitter.
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: pipelinerun-with-sbom-task
+spec:
+  pipelineSpec:
+	tasks:
+  	- name: sbom-task
+    	taskRef:
+      	name: sbom-task
+	results:
+	- name: IMAGE_URL
+  	description:  Contains the SBOM link
+  	value: $(tasks.sbom-task.results.LINK_TO_SBOM)
+
+.Verification
+Either in the Developer or Administrator perspective, view and download SBOMS (Software build of Materials).
+
+
+
