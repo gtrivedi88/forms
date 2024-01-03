@@ -1,33 +1,40 @@
 Enhancing OpenShift Pipelines with Software Supply Chain Security Use Cases
 
-The PipelineRun Details view in the Developer or Administrator perspective of the web console provides an enhanced visual representation of PipelinesRuns within a project. 
 
-For a PipelineRun Details, you can now view:
+The PipelineRun Details view in the Developer or Administrator perspective of the web console provides an enhanced visual representation of PipelinesRuns within a project. These enhancements align with Software Supply Chain Security use cases, ensuring the integrity and security of your application throughout their development lifecycle.
 
-A signed badge indicating the security and provenance of the PipelineRun
-An Output tab to view the PipelineRun results
-Vulnerabilities within a project
-Link to view and download Software bill of materials (SBOMs)
+The enhanced PipelineRun Details view displays:
 
-Viewing signed badge
-If a pipelinerun is signed by chains then a signed badge appears next to the pipelinerun name indicating the security and provenance of the PipelineRun.
+Security and provenance badge - A signed badge to help you understand the security posture and origin of your PipelineRun
+Output tab - A tab to view the PipelineRun results
+Project Vulnerabilities -  A visual representation of all the vulnerabilities within a project.
+Software Bill of Materials (SBOMs): Download or view detailed listing of software components used in a PipelineRun.
 
-This happens because of the annotation that the operator automatically adds after in the yaml file after reviewing the PipelineRun for security and provenance
+Security and provenance badge
+A PipelineRun next to its name displays a signed badge. This badge indicates that the PipelineRun has undergone a security review by an operator. This review process involves examining the PipelineRun for potential security vulnerabilities and adding the following annotation in the YAML file. 
 
 annotations:
    chains.tekton.dev/signed: 'true'
 
 
+
+
+
 View Output
 
-The PipelineRun details page also displays an Output tab to view the PipelineRun results
+The PipelineRun details page displays an Output tab to view the PipelineRun results.
+
 
 
 
 Viewing Vulnerabilities
-The Vulnerabilities row in the PipelineRun details page of the web console provides a visual representation of all the vulnerabilities within a project, such as, critical, high, medium , and low.
+The PipelineRun details page provides a visual representation of identified vulnerabilities  categorized by the severity (critical, high, medium, and low). This streamlined view facilitates prioritization and remediation efforts.
+
+
 
 Additionally, you can review the Vulnerabilities column in the PipelineRuns view.
+
+
 
 .Prerequisites
 You have logged in to the web console.
@@ -41,9 +48,10 @@ You are in the Administrator perspective.
 
 .Procedure
 In the Administrator perspective, switch to the relevant project, for example, my-petclinic.
-Optional: If you do not have a vulnerability scan task yaml file, create one in the following format.
+Optional: If you do not have a vulnerability scan task YAML file, create one in the following format.
 Example vulnerability scan task
-apiVersion: tekton.dev/v1
+
+	apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: vulnerability-scan  # <1>
@@ -89,7 +97,7 @@ spec:
 <.> The tool-specific environment variables
 <.>     Set up the shell script to be executed. You must ensure that the scan results are outputted in the json format. For example, scan_output.json.
 <.>  Extract vulnerability summary (adjust jq command for different JSON structures).
-If you have an existing vulnerability scan task yaml file, update it to ensure that it stores the output in the .json file and extracts the vulnerability summary in the following format:
+Update your existing vulnerability scan task YAML file to ensure that it stores the output in the .json file and extracts the vulnerability summary in the following format:
 	jq -rce \ <.>
       	'{vulnerabilities:{
         	critical: (.result.summary.CRITICAL),
@@ -100,7 +108,7 @@ If you have an existing vulnerability scan task yaml file, update it to ensure t
 
 	<.>  Extract vulnerability summary (adjust jq command for different JSON structures).
 	
-Update your piplelinerun to add vulnerabilities specifications:
+Update an appropriate PipelineRun to add vulnerabilities specifications:
 	…
 spec:
   results:
@@ -109,19 +117,16 @@ spec:
   	value: $(tasks.vulnerability-scan.results.SCAN_OUTPUT)
 
 .Verification
-Either in the Developer or Administrator perspective, view the Vulnerabilities row in the PipelineRun details page. Additionally, you can view the Vulnerabilities column in the PipelineRuns view page.
-
-Viewing a signed badge
-The PipelineRun details page of the web console now displays a signed badge indicating the security and the provenance of the PipelineRun.
-
+Navigate to the PipelineRuns list view page, and review Vulnerabilities column.
+Alternatively, you can navigate to the PipelineRun details page and review the Vulnerabilities row.
 
 
 
 
 Viewing and Downloading SBOMs
-The PipelineRun details page of the web console now provides an option to view and download SBOMS (Software build of Materials). A software bill of materials (SBOM) provides greater transparency for your software supply chain. It lists all the software libraries that a component uses. Those libraries can enable specific functionality or facilitate development.
+The PipelineRun details page provides an option to download or view SBOMs, enhancing transparency and control within your supply chain. It lists all the software libraries that a component uses. Those libraries can enable specific functionality or facilitate development.
 
-You can use an SBOM to better understand the composition of your software, identify vulnerabilities, and assess the potential impact of any security issues that may arise. Also, to comply with cybersecurity regulations, you might need to provide your customers with the SBOM for your application’s components.
+You can use an SBOM to better understand the composition of your software, identify vulnerabilities, and assess the potential impact of any security issues that may arise.
 
 
 .Prerequisites
@@ -178,7 +183,4 @@ spec:
   	value: $(tasks.sbom-task.results.LINK_TO_SBOM)
 
 .Verification
-Either in the Developer or Administrator perspective, view and download SBOMS (Software build of Materials).
-
-
-
+Navigate to the PipelineRun details page and download or view the SBOMs.
