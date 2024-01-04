@@ -1,4 +1,38 @@
-{% extends 'base.html' %}
+    function addGroup() {
+        // Clone the product alias group and append it to the form
+        var groupClone = document.querySelector('.product-alias-group').cloneNode(true);
+        document.querySelector('form').appendChild(groupClone);
+
+        // Clear values in the cloned group
+        var inputs = groupClone.querySelectorAll('input, select');
+        inputs.forEach(function (input) {
+            input.value = '';
+        });
+
+        // Display the "Delete" button for the cloned group
+        var deleteBtn = groupClone.querySelector('.remove-reference');
+        deleteBtn.style.display = 'inline-block';
+
+        // Hide the "Add" button for the cloned group
+        var addBtn = groupClone.querySelector('.add-group-btn');
+        addBtn.style.display = 'none';
+    }
+
+    function deleteGroup(button) {
+        // Remove the parent of the clicked "Delete" button (i.e., the entire group)
+        button.parentNode.remove();
+
+        // Display the "Add" button if there is at least one product alias group
+        var groupCount = document.querySelectorAll('.product-alias-group').length;
+        if (groupCount === 1) {
+            document.querySelector('.add-group-btn').style.display = 'inline-block';
+        }
+    }
+
+
+
+
+    {% extends 'base.html' %}
 
 {% block heading %}
 <h1 class="pf-v5-c-title pf-m-4xl">Welcome to OPL</h1>
@@ -154,9 +188,6 @@
             Group</button>
     </fieldset>
 
-    <br><br>
-
-    <br><br>
 
     {{ form.submit(style="background-color: #1a73e8; color: #ffffff;") }}
 </form>
