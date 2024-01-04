@@ -47,27 +47,6 @@
         {% endfor %}
     </select>
 
-    <br><br>
-
-    <div id="product-references">
-        <div class="product-reference-pair">
-            <div class="form-field">
-                <label for="{{ form.product_link.id }}">Product Reference</label>
-                {{ form.product_link(cols=40) }}
-            </div>
-    
-            <div class="form-field">
-                <label for="{{ form.link_description.id }}">Reference Description</label>
-                {{ form.link_description(cols=40) }}
-            </div>
-    
-            <div class="form-field buttons-row">
-                <button type="button" class="add-reference">Add more</button>
-                <button type="button" class="remove-reference" style="display: none;">Delete</button>
-            </div>
-        </div>
-    </div>
-
 
     <br><br>
 
@@ -149,7 +128,7 @@
     
         <!-- "Add" button for the current group -->
         <button type="button" class="group-btn add-group-btn" onclick="addGroup()">Add Another Alias Group</button>
-    
+        <button type="button" class="remove-reference" style="display: none;">Delete</button>
     </fieldset>
 
     <br><br>
