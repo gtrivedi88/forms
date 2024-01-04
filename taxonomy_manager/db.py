@@ -102,20 +102,20 @@
     <!-- Product Alias Information Group -->
     <fieldset class="product-alias-group">
         <legend>Product Alias Information</legend>
-
+    
         <!-- Fields for Product Alias -->
         <div class="form-group">
             <label for="{{ form.alias_name.id }}">{{ form.alias_name.label }}</label>
             {{ form.alias_name() }}
         </div>
-
+    
         <br>
-
+    
         <label for="{{ form.alias_type.id }}">{{ form.alias_type.label }}</label>
         {{ form.alias_type() }}
-
+    
         <br><br>
-
+    
         <!-- Fields for Product Alias -->
         <div class="form-group">
             <div class="checkbox-field">
@@ -123,38 +123,34 @@
                 <label for="{{ form.alias_approved.id }}" data-toggle="tooltip"
                     title="Leaving it blank for unapproved aliases.">{{ form.alias_approved.label }}</label>
             </div>
-
+    
             <div class="checkbox-field">
                 {{ form.previous_name() }}
                 <label for="{{ form.previous_name.id }}">{{ form.previous_name.label }}</label>
             </div>
-
+    
             <div class="checkbox-field">
                 {{ form.tech_docs() }}
                 <label for="{{ form.tech_docs.id }}">{{ form.tech_docs.label }}</label>
             </div>
-
+    
             <div class="checkbox-field">
                 {{ form.tech_docs_cli() }}
                 <label for="{{ form.tech_docs_cli.id }}">{{ form.tech_docs_cli.label }}</label>
             </div>
         </div>
-
+    
         <br>
-
+    
         <label for="{{ form.alias_notes.id }}">{{ form.alias_notes.label }}</label>
         {{ form.alias_notes(cols=40) }}
-
-    <br><br>
-    <!-- "Delete" button for the current group -->
-    <button type="button" class="delete-group-btn" onclick="deleteGroup(this)">Delete Group</button>
+    
+        <br><br>
+    
+        <!-- "Add" button for the current group -->
+        <button type="button" class="group-btn add-group-btn" onclick="addGroup()">Add Another Alias Group</button>
     
     </fieldset>
-    
-    <br><br>
-
-        <!-- "Add" button to add more groups -->
-        <button type="button" id="add-group-btn" onclick="addGroup()">Add Another Alias Group</button>
 
     <br><br>
 
