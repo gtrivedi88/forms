@@ -216,3 +216,124 @@ $(document).ready(function () {
 <a href="{{ url_for('add_product') }}" class="button-link">Add more products</a>
 {% endif %}
 {% endblock %}
+
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input,
+textarea,
+select {
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+button {
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-row input {
+    margin-right: 10px;
+}
+
+.button-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #1a73e8;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+}
+
+.success {
+    color: green;
+    font-weight: bold;
+}
+
+.product-reference-pair {
+    display: flex;
+}
+
+.form-group {
+    display: flex;
+}
+
+.form-field {
+    flex: 1;
+    /* Adjust the width as needed */
+}
+
+.checkbox-field {
+    display: flex;
+    flex: auto;
+}
+
+.checkbox-field input {
+    margin-right: 10px;
+    /* Adjust the space between the checkbox and label */
+}
+
+.buttons-row {
+    align-items: center;
+    margin-top: 35px;
+}
+
+.buttons-row button {
+    margin-left: 10px;
+}
+
+.remove-reference {
+    background-color: #ff0000;
+    color: white;
+}
+
+.remove-reference:hover {
+    background-color: #cc0000;
+}
+
+/* Add this to your main.css file or include it in your HTML file */
+
+.product-alias-group {
+    border: 2px solid #0a63ca;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    position: relative;
+}
+
+.product-alias-group legend {
+    font-weight: bold;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.remove-alias-group {
+    background-color: #ff0000;
+    color: white;
+    margin-top: 10px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.remove-alias-group:hover {
+    background-color: #cc0000;
+}
