@@ -1,231 +1,50 @@
-from flask import Flask, render_template, flash, request
-from flask_sqlalchemy import SQLAlchemy
-from forms import MyForm
-from models import db, Product, ProductType, ProductTypeMap, ProductPortfolios, ProductPortfolioMap, ProductNotes, ProductReferences, ProductAlias, ProductMktLife, ProductPartners, Partner, ProductComponents
-from datetime import datetime
+class ProductComponents(db.Model):
+    """
+    Represents a many-to-many relationship between Product and Components.
 
-# For troubleshooting
-import logging
-logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+    Attributes:
+    - product_id: Foreign key to Product.
+    - component_id: Foreign key to Components.
+    """
 
-app = Flask(__name__)
-<data>
+    __tablename__ = 'product_components'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "product_id"
+    __term__ = "component_id"
 
-# Initialize the database
-db.init_app(app)
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    component_id = db.Column(db.String(255), nullable=False, primary_key=True)
+    component_type = db.Column(db.String(255), nullable=False)
 
-# Define the index route
-@app.route('/', methods=['GET'])
-def index():
-    return render_template('index.html')
-
-# Define the route to add a product
-@app.route('/opl/add-product', methods=['GET', 'POST'])
-def add_product():
-    form = MyForm()
-    success_message = None
-    show_form = True
-
-    # Initialize the variables here
-    formatted_created_date = None
-    formatted_last_updated_date = None
-
-    # Populate product type choices
-    form.product_type.choices = [(ptype.type_id, ptype.product_type) for ptype in ProductType.query.all()]
-
-    # Populate product portfolio choices
-    form.product_portfolio.choices = [(portfolio.category_id, portfolio.category_name) for portfolio in ProductPortfolios.query.all()]
-
-    # Populate partner choices
-    form.partner.choices = [(partner.partner_id, partner.partner_name) for partner in Partner.query.all()]
-
-    # Populate component choices
-    form.component.choices = [(product.product_id, product.product_name) for product in Product.query.all()]
-
-    if form.validate_on_submit():
-        # Logic for adding a new product
-        created_date = datetime.now()
-
-        # Create a new product instance
-        new_product = Product(
-            product_name=form.product_name.data,
-            product_description=form.product_description.data,
-            upcoming_change=form.upcoming_change.data,
-            deprecated=form.deprecated.data,
-            product_status=form.product_status.data,
-            last_updated=created_date,
-            created=created_date,
-            product_status_detail=form.product_status_detail.data
-        )
-
-        # Add and commit the new product to the database
-        db.session.add(new_product)
-        db.session.commit()
-
-        # Add product type mapping
-        selected_product_types = form.product_type.data
-        for product_type_id in selected_product_types:
-            product_type_map = ProductTypeMap(product_id=new_product.product_id, type_id=product_type_id)
-            db.session.add(product_type_map)
-
-        # Add product portfolio mapping
-        selected_portfolios = form.product_portfolio.data
-        for portfolio_id in selected_portfolios:
-            product_portfolio_map = ProductPortfolioMap(product_id=new_product.product_id, category_id=portfolio_id)
-            db.session.add(product_portfolio_map)
-
-        # Add Product Notes
-        product_notes_data = form.product_notes.data
-        if product_notes_data:
-            product_notes = ProductNotes(product_id=new_product.product_id, product_note=product_notes_data)
-            db.session.add(product_notes)
-
-        # Add Product References
-        product_references_data = []
-        for i in range(len(request.form.getlist('product_link'))):
-            product_link = request.form.getlist('product_link')[i]
-            link_description = request.form.getlist('link_description')[i]
-
-            if product_link and link_description:
-                product_references_data.append({
-                    'product_link': product_link,
-                    'link_description': link_description
-                })
-
-        for reference_data in product_references_data:
-            product_references = ProductReferences(
-                product_id=new_product.product_id,
-                product_link=reference_data['product_link'],
-                link_description=reference_data['link_description']
-            )
-            db.session.add(product_references)
-
-        # Add Product Alias
-        product_alias_data = []
-        alias_names = request.form.getlist('alias_name')
-        alias_types = request.form.getlist('alias_type')
-        alias_approved_list = request.form.getlist('alias_approved')
-        previous_name_list = request.form.getlist('previous_name')
-        tech_docs_list = request.form.getlist('tech_docs')
-        tech_docs_cli_list = request.form.getlist('tech_docs_cli')
-        alias_notes_list = request.form.getlist('alias_notes')
-
-        for i in range(len(alias_names)):
-            alias_name = alias_names[i]
-            alias_type = alias_types[i]
-            alias_approved = alias_approved_list[i].lower() == 'y' if i < len(alias_approved_list) else False
-            previous_name = previous_name_list[i].lower() == 'y' if i < len(previous_name_list) else False
-            tech_docs = tech_docs_list[i].lower() == 'y' if i < len(tech_docs_list) else False
-            tech_docs_cli = tech_docs_cli_list[i].lower() == 'y' if i < len(tech_docs_cli_list) else False
-            alias_notes = alias_notes_list[i] if i < len(alias_notes_list) else ''
-
-            if alias_name:
-                product_alias_data.append({
-                    'alias_name': alias_name,
-                    'alias_type': alias_type,
-                    'alias_approved': alias_approved,
-                    'previous_name': previous_name,
-                    'tech_docs': tech_docs,
-                    'tech_docs_cli': tech_docs_cli,
-                    'alias_notes': alias_notes
-                })
-
-        # Loop to save aliases
-        for alias_data in product_alias_data:
-            # Directly use boolean values, no need for lower()
-            alias_approved = alias_data['alias_approved']
-            previous_name = alias_data['previous_name']
-            tech_docs = alias_data['tech_docs']
-            tech_docs_cli = alias_data['tech_docs_cli']
-
-            # Create ProductAlias object and add to the session
-            product_alias = ProductAlias(
-                product_id=new_product.product_id,
-                alias_name=alias_data['alias_name'],
-                alias_type=alias_data['alias_type'],
-                alias_approved=alias_approved,
-                previous_name=previous_name,
-                tech_docs=tech_docs,
-                tech_docs_cli=tech_docs_cli,
-                alias_notes=alias_data['alias_notes']
-            )
-            db.session.add(product_alias)
-
-        # Add Product Mkt Life
-        product_mkt_life = ProductMktLife(
-            product_id=new_product.product_id,
-            product_release=form.product_release.data if form.product_release.data else None,
-            product_release_detail=form.product_release_detail.data,
-            product_release_link=form.product_release_link.data,
-            product_eol=form.product_eol.data if form.product_eol.data else None,
-            product_eol_detail=form.product_eol_detail.data,
-            product_eol_link=form.product_eol_link.data
-        )
-        db.session.add(product_mkt_life)
-
-        # Get the selected partner_id from the form
-        selected_partner_ids = form.partner.data
-
-        # Add product partners mapping
-        for selected_partner_id in selected_partner_ids:
-            product_partners = ProductPartners(
-                product_id=new_product.product_id,
-                partner_id=selected_partner_id
-            )
-            db.session.add(product_partners)
-
-        # Add Product Components
-        product_components_data = []
-        for i in range(len(request.form.getlist('component_id'))):
-            component_id = request.form.getlist('component_id')[i]
-            component_type = request.form.getlist('component_type')[i]
-
-            if component_id and component_type:
-                product_components_data.append({
-                    'component_id': component_id,
-                    'component_type': component_type
-                })
-
-        for component_data in product_components_data:
-            product_components = ProductComponents(
-                product_id=new_product.product_id,
-                component_id=component_data['component_id'],
-                component_type=component_data['component_type']
-            )
-            db.session.add(product_components)
-        db.session.commit()
+    # Define the relationship to the existing Product model
+    product = db.relationship('Product', backref='components', foreign_keys=[product_id])
 
 
-        # Commit changes outside the loop
-        db.session.commit()
+    # Add a new field for selecting a component
+    component = SelectField('Parent', choices=[], coerce=str)
+    component_type = SelectField('Component Type', choices=[('component', 'Component'), ('operator', 'Operator'), ('variant', 'Variant')], coerce=str)
 
-        # Format dates for display
-        formatted_created_date = created_date.strftime('%Y-%m-%d')
-        formatted_last_updated_date = created_date.strftime('%Y-%m-%d')
 
-        # Set success message and hide the form
-        success_message = f'Successfully added the product: {form.product_name.data}'
-        show_form = False
+    <fieldset class="product-component-group">
+    <legend>Product Parent Information</legend>
+        <div class="form-field">
+            <label for="{{ form.component.id }}">{{ form.component.label }}</label>
+            <select id="{{ form.component.id }}" name="{{ form.component.name }}">
+                {% for value, label in form.component.choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-    return render_template('opl/add.html', form=form, success_message=success_message,
-                           show_form=show_form, formatted_created_date=formatted_created_date,
-                           formatted_last_updated_date=formatted_last_updated_date)
-
-# Define the route to edit a product
-@app.route('/opl/edit-product', methods=['GET', 'POST'])
-def edit_product():
-    form = MyForm()
-
-    if form.validate_on_submit():
-        # Logic for editing the product
-        return render_template('opl/edit.html', form=form, success_message=f'Successfully edited: {form.product_id.data}, {form.product_name.data}')
-
-    return render_template('opl/edit.html', form=form)
-
-# Run the application if executed directly
-if __name__ == '__main__':
-    with app.app_context():
-        # Create all database tables
-        db.create_all()
-    app.run(debug=True)
+        <div class="form-field">
+            <label for="{{ form.component_type.id }}">{{ form.component_type.label }}</label>
+            <select id="{{ form.component_type.id }}" name="{{ form.component_type.name }}">
+                {% for value, label in form.component_type.choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <br>
+        <button type="button" class="add-component-group" style="margin-top: 10px;">Add more components</button>
+        <button type="button" class="remove-component-group" style="display: none;">Delete</button>
+    </fieldset>
