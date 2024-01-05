@@ -1,17 +1,15 @@
 $(document).ready(function () {
-    // Add more Product Component Information groups
-    $(document).on("click", ".add-component-group", function () {
-        var newComponentGroup = $(".product-component-group:first").clone();
-        newComponentGroup.find('input, select').val('');
-        newComponentGroup.find('.remove-component-group').show();
-        newComponentGroup.find('.add-component-group').remove(); // Remove the Add button in the cloned group
-        $(".product-component-group:last").after(newComponentGroup);
-    });
+        // Add more Product Reference and Reference Description pairs
+        $(".add-reference").click(function () {
+            var referencePair = $(".product-reference-pair:first").clone();
+            referencePair.find("input, textarea").val('');
+            referencePair.find(".add-reference").hide();
+            referencePair.find(".remove-reference").show();
+            $("#product-references").append(referencePair);
+        });
 
-    // Remove the current Product Component Information group
-    $(document).on("click", ".remove-component-group", function () {
-        if ($(".product-component-group").length > 1) {
-            $(this).closest(".product-component-group").remove();
-        }
+        // Remove the current Product Reference and Reference Description pair
+        $(document).on("click", ".remove-reference", function () {
+            $(this).closest(".product-reference-pair").remove();
+        });
     });
-});
