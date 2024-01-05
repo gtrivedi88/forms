@@ -1,85 +1,63 @@
-from wtforms import Form, BooleanField, StringField, TextAreaField, SelectField, SelectMultipleField, validators, widgets
-from wtforms_sqlalchemy.fields import QuerySelectMultipleField
+class ProductPortfolios(db.Model):
+    """
+    Represents different portfolios for products.
 
-# Below are the form classes for each taxonomy. Each is based on the wtforms
-# specification. However, there are some additional variables to help with a
-# few things:
-#
-#   form_choices        Used with forms that contain SelectField and
-#                       SelectMultipleField. In some cases, the choices option
-#                       for these two field types are usually taken from another
-#                       table. which means they need to be set within the
-#                       context of the Flask app. So this variable sets a
-#                       mapping to data from another table, which the
-#                       utils.get_choices_for_selectfields method renders and
-#                       adds to the choices option of the relevant field. The
-#                       mapping is as follows:
-#                           'model'     The name of the model to pull data from.
-#                           'value'     The column to use for the select field value
-#                           'label'     The column to use for the select field label
-#   mapped_data         This variable acts as a trigger to let the Flask app
-#                       know that secondary table mapping is used. This is used
-#                       to both get data and set data to the secondary table.
+    Attributes:
+    - category_id: Unique identifier for the product portfolio.
+    - category_name: Name of the product portfolio.
+    """
 
-class FormCategories(Form):
-    category_name = StringField('Category Name', validators = [validators.InputRequired()])
-    category_abstract = TextAreaField('Category Abstract')
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
+    __tablename__ = 'product_portfolios'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "category_id"
+    __term__ = "category_name"
 
-class FormContentType(Form):
-    content_type = StringField('Content Type', validators = [validators.InputRequired()])
-    content_defintion = TextAreaField('Content Definition')
-    content_purpose = TextAreaField('Content Purpose')
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
+    category_id = db.Column(db.String, primary_key=True)
+    category_name = db.Column(db.String(255), nullable=False)
 
-class FormIndustry(Form):
-    industry = StringField('Industry', validators = [validators.InputRequired()])
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
+    # Relationships
+    product_portfolio_map = db.relationship('ProductPortfolioMap', backref='product_portfolio', lazy='dynamic')
 
-class FormJobType(Form):
-    form_choices={'metadata_personas': {'model': 'Persona', 'value': 'persona_id', 'label': 'persona_name'}}
-    mapped_data={'metadata_personas': 'Persona'}
-    job_name = StringField('Job Name', validators = [validators.InputRequired()])
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
-    metadata_personas = SelectMultipleField('Personas')
+class ProductPortfolioMap(db.Model):
+    """
+    Represents a many-to-many relationship between Product and ProductPortfolios.
 
-class FormJourneyStage(Form):
-    journey_name = StringField('Journey Name', validators = [validators.InputRequired()])
-    journey_abstract = StringField('Journey Abstract')
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
+    Attributes:
+    - product_id: Foreign key to Product.
+    - category_id: Foreign key to ProductPortfolios.
+    """
 
-class FormModType(Form):
-    mod_type = StringField('Module Type', validators = [validators.InputRequired()])
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
+    __tablename__ = 'product_portfolio_map'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "product_id"
+    __term__ = "category_id"
 
-class FormPartnerAttribute(Form):
-    form_choices={'partner_id': {'model': 'OplPartner', 'value': 'partner_id', 'label': 'partner_name'}}
-    partner_id = SelectField('Partner')
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    category_id = db.Column(db.String, db.ForeignKey('brand_opl.product_portfolios.category_id'), primary_key=True)
 
-class FormPersona(Form):
-    persona_name = StringField('Persona Name', validators = [validators.InputRequired()])
-    persona_abstract = StringField('Persona Abstract')
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
 
-class FormPlatform(Form):
-    platform = StringField('Platform', validators = [validators.InputRequired()])
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
 
-class FormProductAttribute(Form):
-    form_choices={'product_id': {'model': 'OplProduct', 'value': 'product_id', 'label': 'product_name'}}
-    product_id = SelectField('Product')
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
-    alias_id = StringField('Alias ID', validators = [validators.InputRequired()])
+    # SelectField for Product Portfolio
+    product_portfolio = SelectMultipleField('Portfolio')
 
-class FormProficiency(Form):
-    proficiency = StringField('Proficiency', validators = [validators.InputRequired()])
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
 
-class FormSolution(Form):
-    solution = StringField('Solution', validators = [validators.InputRequired()])
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
+    # Populate product portfolio choices
+    form.product_portfolio.choices = [(portfolio.category_id, portfolio.category_name) for portfolio in ProductPortfolios.query.all()]
 
-class FormTopic(Form):
-    topic = StringField('Topic', validators = [validators.InputRequired()])
-    doc_attribute = StringField('Doc Attribute', validators = [validators.InputRequired()])
+<code in between>
+
+        # Add product portfolio mapping
+        selected_portfolios = form.product_portfolio.data
+        for portfolio_id in selected_portfolios:
+            product_portfolio_map = ProductPortfolioMap(product_id=new_product.product_id, category_id=portfolio_id)
+            db.session.add(product_portfolio_map)
+
+
+<div class="form-field">
+                <label for="{{ form.product_portfolio.id }}">{{ form.product_portfolio.label }}</label>
+                <select id="{{ form.product_portfolio.id }}" name="{{ form.product_portfolio.name }}" multiple>
+                    {% for value, label in form.product_portfolio.choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
