@@ -376,10 +376,9 @@ class MyForm(FlaskForm):
 
     # Add a new field for selecting a component
     component = SelectField('Parent', choices=[('', 'Select')], validators=[Optional()])
-    component_type = SelectField('Component Type', choices=[('component', 'Component'), ('operator', 'Operator'), ('variant', 'Variant')], validators=[Optional()])
+    component_type = SelectField('Component Type', choices=[('', 'Select'), ('component', 'Component'), ('operator', 'Operator'), ('variant', 'Variant')], validators=[Optional()])
 
     submit = SubmitField('Add Product')
-
 
 
 
@@ -558,40 +557,34 @@ def add_product():
             )
             db.session.add(product_alias)
 
-        # Add Product Components
-        product_components_data = []
-        component_ids = request.form.getlist('component')
-        component_types = request.form.getlist('component_type')
+    # Add Product Components
+    product_components_data = []
+    component_ids = request.form.getlist('component')
+    component_types = request.form.getlist('component_type')
 
-        for i in range(len(component_ids)):
-            component_id = component_ids[i]
-            component_type = component_types[i]
+    save_to_database = any(component_id != 'Select' and component_type != 'Select' for component_id, component_type in zip(component_ids, component_types))
 
-            # Check if component_id is not 'Select'
-            if component_id != 'Select':
-                product_components_data.append({
-                    'component_id': component_id,
-                    'component_type': component_type
-                })
+    if save_to_database:
+        for component_id, component_type in zip(component_ids, component_types):
+            product_components_data.append({
+                'component_id': component_id,
+                'component_type': component_type
+            })
 
         # Loop to save components
         for component_data in product_components_data:
-            # Directly use boolean values, no need for lower()
             component_id = component_data['component_id']
             component_type = component_data['component_type']
 
-            # Check if component_id is not 'Select' before saving to the database
-            if component_id:
-                # Create ProductComponent object and add to the session
-                product_component = ProductComponents(
-                    product_id=new_product.product_id,
-                    component_id=component_id,
-                    component_type=component_type
-                )
-                db.session.add(product_component)
+            # Assuming you have a ProductComponents model with appropriate fields
+            product_component = ProductComponents(
+                product_id=new_product.product_id,
+                component_id=component_id,
+                component_type=component_type
+            )
+            db.session.add(product_component)
 
-        # Commit the changes to the database
-        db.session.commit()
+
             
         # Commit changes outside the loop
         db.session.commit()
