@@ -1,25 +1,30 @@
-$(document).ready(function () {
-    // Initial choices for Status Details
-    var initialStatusDetailsChoices = {
-        'Select': 'Select',
-        'General Availability': 'General Availability',
-        'Live': 'Live',
-        'Developer Preview': 'Developer Preview',
-        'Technology Preview': 'Technology Preview',
-        'Limited Availability': 'Limited Availability',
-        'Service Preview': 'Service Preview',
-        'Null': 'NULL'
-    };
+function updateStatusDetailsChoices() {
+    var selectedStatus = $('#status-dropdown').val();
+    var statusDetailsDropdown = $('#status-details-dropdown');
 
-    // Update Status Details choices based on Product Status
-    function updateStatusDetailsChoices() {
-        var selectedStatus = $('#status-dropdown').val();
-        var statusDetailsDropdown = $('#status-details-dropdown');
+    // Reset choices to initial state
+    statusDetailsDropdown.empty();
 
-        // Reset choices to initial state
-        statusDetailsDropdown.empty();
+    if (selectedStatus === 'Select') {
+        // If 'Select' is selected, disable validation for the status field
+        $('#status-dropdown').removeAttr('required');
+    } else {
+        // If any other status is selected, show all choices
+        $('#status-dropdown').attr('required', 'required');
 
-        if (selectedStatus === 'Deprecated') {
+        // Show the appropriate choices based on the selected status
+        $.each(initialStatusDetailsChoices, function (value, label) {
+            if (selectedStatus === 'Deprecated' && value === 'Null') {
+                // If 'Deprecated' is selected, mark 'NULL' as selected
+                statusDetailsDropdown.append($('<option>', { value: value, text: label, selected: 'selected' }));
+            } else {
+                // For other statuses or non-'Deprecated' status, show all choices
+                statusDetailsDropdown.append($('<option>', { value: value, text: label }));
+            }
+        });
+    }
+
+    if (selectedStatus === 'Deprecated') {
             // If Deprecated is selected, show only 'NULL' in Status Details
             statusDetailsDropdown.append($('<option>', { value: 'Null', text: 'NULL' }));
         } else {
@@ -27,27 +32,6 @@ $(document).ready(function () {
             $.each(initialStatusDetailsChoices, function (value, label) {
                 statusDetailsDropdown.append($('<option>', { value: value, text: label }));
             });
-        }
+
+         }
     }
-
-    // Initial setup
-    updateStatusDetailsChoices();
-
-    // Attach event handler to Product Status dropdown change event
-    $('#status-dropdown').change(function () {
-        updateStatusDetailsChoices();
-    });
-});
-
-
-        # Create a new product instance
-        new_product = Product(
-            product_name=form.product_name.data,
-            product_description=form.product_description.data,
-            upcoming_change=form.upcoming_change.data,
-            deprecated=form.deprecated.data,
-            product_status=form.product_status.data if form.product_status.data != 'Select' else '',
-            last_updated=created_date,
-            created=created_date,
-            product_status_detail=form.product_status_detail.data if form.product_status.data == 'Deprecated' and form.product_status_detail.data == 'NULL' else ''
-        )
