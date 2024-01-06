@@ -1,3 +1,5 @@
+UnboundLocalError: cannot access local variable 'new_product' where it is not associated with a value
+
 from flask import Flask, render_template, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from forms import MyForm
