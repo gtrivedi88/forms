@@ -1,17 +1,23 @@
-$(document).ready(function () {
-    // Add more Product Component Information groups
-    $(document).on("click", ".add-component-group", function () {
-        var newComponentGroup = $(".product-component-group:first").clone();
-        newComponentGroup.find('select').val('');
-        newComponentGroup.find('.remove-component-group').show();
-        newComponentGroup.find('.add-component-group').remove(); // Remove the Add button in the cloned group
-        $(".product-component-group:last").after(newComponentGroup);
-    });
+        # Add Product Components
+        product_components_data = []
+        component_ids = request.form.getlist('component')
+        component_types = request.form.getlist('component_type')
 
-    // Remove the current Product Component Information group
-    $(document).on("click", ".remove-component-group", function () {
-        if ($(".product-component-group").length > 1) {
-            $(this).closest(".product-component-group").remove();
-        }
-    });
-});
+        for i in range(len(component_ids)):
+            component_id = component_ids[i]
+            component_type = component_types[i]
+
+            if component_id:
+                product_components_data.append({
+                    'component_id': component_id,
+                    'component_type': component_type
+                })
+
+        # Loop to save components
+        for component_data in product_components_data:
+            product_component = ProductComponents(
+                product_id=new_product.product_id,
+                component_id=component_data['component_id'],
+                component_type=component_data['component_type']
+            )
+            db.session.add(product_component)
