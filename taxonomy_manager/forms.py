@@ -1,26 +1,24 @@
-function updateStatusDetailsChoices() {
-    var selectedStatus = $('#status-dropdown').val();
-    var statusDetailsDropdown = $('#status-details-dropdown');
+$(document).ready(function () {
+    // Initial choices for Status Details
+    var initialStatusDetailsChoices = {
+        'Select': 'Select',
+        'General Availability': 'General Availability',
+        'Live': 'Live',
+        'Developer Preview': 'Developer Preview',
+        'Technology Preview': 'Technology Preview',
+        'Limited Availability': 'Limited Availability',
+        'Service Preview': 'Service Preview',
+        'Null': 'NULL'
+    };
 
-    // Reset choices to initial state
-    statusDetailsDropdown.empty();
+    // Update Status Details choices based on Product Status
+    function updateStatusDetailsChoices() {
+        var selectedStatus = $('#status-dropdown').val();
+        var statusDetailsDropdown = $('#status-details-dropdown');
 
-    if (selectedStatus === 'Select') {
-        // If 'Select' is selected, disable validation for the status field
-        $('#status-dropdown').removeAttr('required');
-    } else {
-        // If any other status is selected, show all choices
-        $('#status-dropdown').attr('required', 'required');
+        // Reset choices to initial state
+        statusDetailsDropdown.empty();
 
-        // Show the appropriate choices based on the selected status
-        $.each(initialStatusDetailsChoices, function (value, label) {
-            if (selectedStatus === 'Deprecated' && value === 'Null') {
-                // If 'Deprecated' is selected, mark 'NULL' as selected
-                statusDetailsDropdown.append($('<option>', { value: value, text: label, selected: 'selected' }));
-            } else {
-                // For other statuses or non-'Deprecated' status, show all choices
-                statusDetailsDropdown.append($('<option>', { value: value, text: label }));
-            }
         if (selectedStatus === 'Deprecated') {
             // If Deprecated is selected, show only 'NULL' in Status Details
             statusDetailsDropdown.append($('<option>', { value: 'Null', text: 'NULL' }));
@@ -28,9 +26,9 @@ function updateStatusDetailsChoices() {
             // If any other status is selected, show all choices
             $.each(initialStatusDetailsChoices, function (value, label) {
                 statusDetailsDropdown.append($('<option>', { value: value, text: label }));
-        });
+            });
+        }
     }
-}
 
     // Initial setup
     updateStatusDetailsChoices();
