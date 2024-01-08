@@ -1,79 +1,308 @@
-$(document).ready(function () {
-        // Add more Product Reference and Reference Description pairs
-        $(".add-notes").click(function () {
-            var referencePair = $(".product-notes-pair:first").clone();
-            referencePair.find("input, textarea").val('');
-            referencePair.find(".add-notes").hide();
-            referencePair.find(".remove-notes").show();
-            $("#product-notes").append(referencePair);
-        });
+from flask_wtf import FlaskForm
+from wtforms.validators import DataRequired, Optional, InputRequired
+from wtforms import StringField, SubmitField, TextAreaField, BooleanField, SelectField, SelectMultipleField, DateField, HiddenField 
 
-        // Remove the current Product Reference and Reference Description pair
-        $(document).on("click", ".remove-notes", function () {
-            $(this).closest(".product-notes-pair").remove();
-        });
-    });
+# Import DateField is duplicated, removed the second import
+# from wtforms import DateField
+
+# Below are the form classes for each taxonomy. Each is based on the wtforms
+# specification. However, there are some additional variables to help with a
+# few things:
+#
+#   form_choices        Used with forms that contain SelectField and
+#                       SelectMultipleField. In some cases, the choices option
+#                       for these two field types are usually taken from another
+#                       table, which means they need to be set within the
+#                       context of the Flask app. So this variable sets a
+#                       mapping to data from another table, which the
+#                       utils.get_choices_for_selectfields method renders and
+#                       adds to the choices option of the relevant field. The
+#                       mapping is as follows:
+#                           'model'     The name of the model to pull data from.
+#                           'value'     The column to use for the select field value
+#                           'label'     The column to use for the select field label
+#   mapped_data         This variable acts as a trigger to let the Flask app
+#                       know that secondary table mapping is used. This is used
+#                       to both get data and set data to the secondary table.
+
+class MyForm(FlaskForm):
+    product_name = TextAreaField('Product Name *', validators=[DataRequired()])
+    product_description = TextAreaField('Product Description')
+    upcoming_change = BooleanField('Upcoming Change')
+    deprecated = BooleanField('Deprecated')
+    
+    # SelectField for Product Status
+    product_status = SelectField('Status', choices=[('', 'Select'), ('Deprecated', 'Deprecated'), ('Upcoming', 'Upcoming'), ('Available', 'Available')])
+
+    # SelectField for Product Status Details
+    product_status_detail = SelectField('Status', choices=[('', 'Select'), ('General availability', 'General availability'), ('Live', 'Live'), ('Developer Preview', 'Developer Preview'), ('Technology Preview', 'Technology Preview'), ('Limited availability', 'Limited availability'), ('Service Preview', 'Service Preview'), ('Null', 'NULL')])
+
+    # SelectField for Product Type
+    product_type = SelectMultipleField('Product Type *', validators=[InputRequired()])
+
+    # SelectField for Product Portfolio
+    product_portfolio = SelectMultipleField('Portfolio')
+
+    # Field for Product Notes
+    product_notes = TextAreaField('Product Notes')
+
+    # Field for Product References
+    product_link = TextAreaField('Product Reference')
+    link_description = TextAreaField('Reference Description')
+
+    # Fields for Product Alias
+    alias_name = TextAreaField('Alias Name')
+    alias_type = SelectField('Alias Type', choices=[('Short', 'Short'), ('Acronym', 'Acronym'), ('Cli', 'Cli'), ('Former', 'Former')], validators=[InputRequired(Optional)])
+    alias_approved = BooleanField('Alias Approved')
+    previous_name = BooleanField('Previous Name')
+    tech_docs = BooleanField('Approved For Tech Docs')
+    tech_docs_cli = BooleanField('Approved For Tech Docs Code/CLI')
+    alias_notes = TextAreaField('Alias Notes')
+
+    # Fields for Product Mkt Life
+    product_release = DateField('Release Date', format='%Y-%m-%d', validators=[Optional()])
+    product_release_detail = TextAreaField('Release Detail')
+    product_release_link = TextAreaField('Release Reference')
+    product_eol = DateField('Product End Of Life (EOL) Date', format='%Y-%m-%d', validators=[Optional()])
+    product_eol_detail = TextAreaField('Product End Of Life (EOL) Details')
+    product_eol_link = TextAreaField('Product End Of Life (EOL) Reference')
+
+
+    # Add a new field for selecting a partner
+    partner = SelectMultipleField('In Partnership with', choices=[], coerce=str)
+
+    # Add a new field for selecting a component
+    component = SelectField('Parent', choices=[('', 'Select')], validators=[Optional()])
+    component_type = SelectField('Component Type', choices=[('', 'Select'), ('component', 'Component'), ('operator', 'Operator'), ('variant', 'Variant')], validators=[Optional()])
+
+
+    submit = SubmitField('Add Product')
 
 
 
 
-    <fieldset class="product-notes-group">
-        <legend>Product Notes Information</legend>
-        <div id="product-notes">
-            <div class="product-notes-pair">
-                <div class="form-field">
-                    <label for="{{ form.product_link.id }}">Product Notes</label>
-                    {{ form.product_link(cols=40) }}
-                </div>
-                <div class="form-field buttons-row">
-                    <button type="button" class="add-notes">Add more</button>
-                    <button type="button" class="remove-notes" style="display: none;">Delete</button>
-                </div>
-            </div>
-        </div>
-    </fieldset>
 
 
 
-        # Add Product Log
-        product_log_data = []
-        for i in range(len(request.form.getlist('edit_notes'))):
-            edit_notes = request.form.getlist('edit_notes')[i]
-            
-            if edit_notes:
-                product_log_data.append({
-                    'edit_notes': edit_notes,
+
+from flask import Flask, render_template, flash, request
+from flask_sqlalchemy import SQLAlchemy
+from forms import MyForm
+from datetime import date
+from models import db, Product, ProductType, ProductTypeMap, ProductPortfolios, ProductPortfolioMap, ProductNotes, ProductReferences, ProductAlias, ProductMktLife, ProductPartners, Partner, ProductComponents
+from datetime import datetime
+
+# For troubleshooting
+import logging
+logging.basicConfig()
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
+app = Flask(__name__)
+<data>
+
+# Initialize the database
+db.init_app(app)
+
+# Define the index route
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
+
+# Define the route to add a product
+@app.route('/opl/add-product', methods=['GET', 'POST'])
+def add_product():
+    form = MyForm()
+    success_message = None
+    show_form = True
+    new_product = None  # Initialize the variable outside the if block
+
+    # Initialize the variables here
+    formatted_created_date = None
+    formatted_last_updated_date = None
+
+    # Populate product type choices
+    form.product_type.choices = [(ptype.type_id, ptype.product_type) for ptype in ProductType.query.all()]
+
+    # Populate product portfolio choices
+    form.product_portfolio.choices = [(portfolio.category_id, portfolio.category_name) for portfolio in ProductPortfolios.query.all()]
+
+    # Populate partner choices
+    form.partner.choices = [(partner.partner_id, partner.partner_name) for partner in Partner.query.all()]
+
+    # Populate component choices
+    form.component.choices = [('', 'Select')] + [(component.product_id, component.product_name) for component in Product.query.all()]
+
+    if form.validate_on_submit():
+        # Logic for adding a new product
+        created_date = datetime.now()
+
+        # Create a new product instance
+        new_product = Product(
+            product_name=form.product_name.data,
+            product_description=form.product_description.data,
+            upcoming_change=form.upcoming_change.data,
+            deprecated=form.deprecated.data,
+            product_status=form.product_status.data if form.product_status.data != 'Select' else '',
+            product_status_detail='NULL' if form.product_status.data == 'Deprecated' else form.product_status_detail.data,
+            last_updated=created_date,
+            created=created_date
+        )
+
+        # If product_status is Deprecated, set product_status_detail to 'NULL'
+        if form.product_status.data == 'Deprecated':
+                form.product_status_detail.data = 'NULL'
+
+
+        # Add and commit the new product to the database
+        db.session.add(new_product)
+        db.session.commit()
+
+        # Add product type mapping
+        selected_product_types = form.product_type.data
+        for product_type_id in selected_product_types:
+            product_type_map = ProductTypeMap(product_id=new_product.product_id, type_id=product_type_id)
+            db.session.add(product_type_map)
+
+        # Add product portfolio mapping
+        selected_portfolios = form.product_portfolio.data
+        for portfolio_id in selected_portfolios:
+            product_portfolio_map = ProductPortfolioMap(product_id=new_product.product_id, category_id=portfolio_id)
+            db.session.add(product_portfolio_map)
+
+        # Add Product Notes
+        product_notes_data = form.product_notes.data
+        if product_notes_data:
+            product_notes = ProductNotes(product_id=new_product.product_id, product_note=product_notes_data)
+            db.session.add(product_notes)
+
+        # Add Product References
+        product_references_data = []
+        for i in range(len(request.form.getlist('product_link'))):
+            product_link = request.form.getlist('product_link')[i]
+            link_description = request.form.getlist('link_description')[i]
+
+            if product_link and link_description:
+                product_references_data.append({
+                    'product_link': product_link,
+                    'link_description': link_description
                 })
 
-        for notes_data in product_log_data:
-            product_log = ProductLog(
+        for reference_data in product_references_data:
+            product_references = ProductReferences(
                 product_id=new_product.product_id,
-                edit_notes=notes_data['edit_notes'],
-                edit_date=date.today()
+                product_link=reference_data['product_link'],
+                link_description=reference_data['link_description']
             )
-            db.session.add(product_log)
+            db.session.add(product_references)
 
+        # Add Product Alias
+        product_alias_data = []
+        alias_names = request.form.getlist('alias_name')
+        alias_types = request.form.getlist('alias_type')
+        alias_approved_list = request.form.getlist('alias_approved')
+        previous_name_list = request.form.getlist('previous_name')
+        tech_docs_list = request.form.getlist('tech_docs')
+        tech_docs_cli_list = request.form.getlist('tech_docs_cli')
+        alias_notes_list = request.form.getlist('alias_notes')
 
-class ProductLog(db.Model):
-    """
-    Represents a log of changes made to a product.
+        for i in range(len(alias_names)):
+            alias_name = alias_names[i]
+            alias_type = alias_types[i]
+            alias_approved = alias_approved_list[i].lower() == 'y' if i < len(alias_approved_list) else False
+            previous_name = previous_name_list[i].lower() == 'y' if i < len(previous_name_list) else False
+            tech_docs = tech_docs_list[i].lower() == 'y' if i < len(tech_docs_list) else False
+            tech_docs_cli = tech_docs_cli_list[i].lower() == 'y' if i < len(tech_docs_cli_list) else False
+            alias_notes = alias_notes_list[i] if i < len(alias_notes_list) else ''
 
-    Attributes:
-    - log_id: Unique identifier for the log entry.
-    - product_id: Foreign key to Product.
-    - edit_date: Date when the edit was made.
-    - edit_notes: Notes associated with the edit.
-    - username: Username of the user who made the edit.
-    """
+            if alias_name:
+                product_alias_data.append({
+                    'alias_name': alias_name,
+                    'alias_type': alias_type,
+                    'alias_approved': alias_approved,
+                    'previous_name': previous_name,
+                    'tech_docs': tech_docs,
+                    'tech_docs_cli': tech_docs_cli,
+                    'alias_notes': alias_notes
+                })
 
-    __tablename__ = 'product_log'
-    __table_args__ = {'schema': 'brand_opl'}
-    __uuid__ = "product_id"
-    __term__ = "edit_date"
+        # Loop to save aliases
+        for alias_data in product_alias_data:
+            # Directly use boolean values, no need for lower()
+            alias_approved = alias_data['alias_approved']
+            previous_name = alias_data['previous_name']
+            tech_docs = alias_data['tech_docs']
+            tech_docs_cli = alias_data['tech_docs_cli']
 
-    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
-    edit_date = db.Column(db.Date, nullable=False)
-    edit_notes = db.Column(db.String(65535), nullable=True)
+            # Create ProductAlias object and add to the session
+            product_alias = ProductAlias(
+                product_id=new_product.product_id,
+                alias_name=alias_data['alias_name'],
+                alias_type=alias_data['alias_type'],
+                alias_approved=alias_approved,
+                previous_name=previous_name,
+                tech_docs=tech_docs,
+                tech_docs_cli=tech_docs_cli,
+                alias_notes=alias_data['alias_notes']
+            )
+            db.session.add(product_alias)
 
-    # Define the relationship to the Product model
-    product = db.relationship('Product', backref=db.backref('ProductLog', lazy='dynamic'))
+        # Add Product Components
+        product_components_data = []
+        component_ids = request.form.getlist('component')
+        component_types = request.form.getlist('component_type')
+
+        save_to_database = any(component_id != 'Select' and component_type != 'Select' for component_id, component_type in zip(component_ids, component_types))
+
+        if save_to_database:
+            for component_id, component_type in zip(component_ids, component_types):
+                product_components_data.append({
+                    'component_id': component_id,
+                    'component_type': component_type
+                })
+
+            # Loop to save components
+            for component_data in product_components_data:
+                component_id = component_data['component_id']
+                component_type = component_data['component_type']
+
+                # Assuming you have a ProductComponents model with appropriate fields
+                product_component = ProductComponents(
+                    product_id=new_product.product_id,
+                    component_id=component_id,
+                    component_type=component_type
+                )
+                db.session.add(product_component)
+
+            
+        # Commit changes outside the loop
+        db.session.commit()
+
+        # Format dates for display
+        formatted_created_date = created_date.strftime('%Y-%m-%d')
+        formatted_last_updated_date = created_date.strftime('%Y-%m-%d')
+
+        # Set success message and hide the form
+        success_message = f'Successfully added the product: {form.product_name.data}'
+        show_form = False
+
+    return render_template('opl/add.html', form=form, success_message=success_message,
+                           show_form=show_form, formatted_created_date=formatted_created_date,
+                           formatted_last_updated_date=formatted_last_updated_date)
+
+# Define the route to edit a product
+@app.route('/opl/edit-product', methods=['GET', 'POST'])
+def edit_product():
+    form = MyForm()
+
+    if form.validate_on_submit():
+        # Logic for editing the product
+        return render_template('opl/edit.html', form=form, success_message=f'Successfully edited: {form.product_id.data}, {form.product_name.data}')
+
+    return render_template('opl/edit.html', form=form)
+
+# Run the application if executed directly
+if __name__ == '__main__':
+    with app.app_context():
+        # Create all database tables
+        db.create_all()
+    app.run(debug=True)
