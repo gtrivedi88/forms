@@ -1,15 +1,4 @@
-$(document).ready(function () {
-    // Add more Product Component Information groups
-    $(document).on("click", ".add-component-group", function () {
-        var newComponentGroup = $(".product-component-group:first").clone();
-        newComponentGroup.find('select').val('');
-        newComponentGroup.find('.remove-component-group').show();
-        newComponentGroup.find('.add-component-group').remove(); // Remove the Add button in the cloned group
-        $(".product-component-group:last").after(newComponentGroup);
-
-        // Update the event handler for the new remove button
-        $(document).on("click", ".remove-component-group", function () {
-            if ($(".product-component-group").length > 1) {
-                $(this).closest(".product-component-group").remove();
-            }
-        });
+<div class="form-field">
+                    <label for="{{ form.edit_notes.id }}">{{ form.edit_notes.label }}</label>
+                    {{ form.edit_notes(cols=40) }}
+                </div>
