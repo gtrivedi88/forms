@@ -1,17 +1,15 @@
 $(document).ready(function () {
-    // Add more Product Alias Information groups
-    $(document).on("click", ".add-alias-group", function () {
-        var newAliasGroup = $(".product-alias-group:first").clone();
-        newAliasGroup.find('input, select').val('');
-        newAliasGroup.find('.remove-alias-group').show();
-        newAliasGroup.find('.add-alias-group').remove(); // Remove the Add button in the cloned group
-        $(".product-alias-group:last").after(newAliasGroup);
-    });
+    // Add more Product Component Information groups
+    $(document).on("click", ".add-component-group", function () {
+        var newComponentGroup = $(".product-component-group:first").clone();
+        newComponentGroup.find('select').val('');
+        newComponentGroup.find('.remove-component-group').show();
+        newComponentGroup.find('.add-component-group').remove(); // Remove the Add button in the cloned group
+        $(".product-component-group:last").after(newComponentGroup);
 
-    // Remove the current Product Alias Information group
-    $(document).on("click", ".remove-alias-group", function () {
-        if ($(".product-alias-group").length > 1) {
-            $(this).closest(".product-alias-group").remove();
-        }
-    });
-});
+        // Update the event handler for the new remove button
+        $(document).on("click", ".remove-component-group", function () {
+            if ($(".product-component-group").length > 1) {
+                $(this).closest(".product-component-group").remove();
+            }
+        });
