@@ -1,32 +1,50 @@
-class ProductType(db.Model):
-    """
-    Represents different types of products.
+{% extends 'base.html' %}
 
-    Attributes:
-    - type_id: Unique identifier for the product type.
-    - product_type: Type of the product.
-    """
+{% block heading %}
+<h1 class="pf-v5-c-title pf-m-4xl">Welcome to OPL</h1>
+{% endblock %}
 
-    __tablename__ = 'product_types'
-    __table_args__ = {'schema': 'brand_opl'}
 
-    type_id = db.Column(db.String, primary_key=True)
-    product_type = db.Column(db.String(255), nullable=False)
+{% block content %}
+<p>Search for a product information.</p>
 
-    # Relationships
-    product_types_map = db.relationship('ProductTypeMap', backref='product_type', lazy='dynamic')
 
-class ProductTypeMap(db.Model):
-    """
-    Represents a many-to-many relationship between Product and ProductType.
+<!-- Section 1: Search -->
+<div id="search-form">
+    <h2>Search Products</h2>
+    <form method="post" action="{{ url_for('view_products') }}">
+        {{ form.csrf_token }}
+        {{ form.hidden_tag() }}
 
-    Attributes:
-    - product_id: Foreign key to Product.
-    - type_id: Foreign key to ProductType.
-    """
+        <label for="product_name">Product Name:</label>
+        {{ form.product_name(class="form-control") }}
 
-    __tablename__ = 'product_types_map'
-    __table_args__ = {'schema': 'brand_opl'}
+        <label for="product_status">Product Status:</label>
+        {{ form.product_status(class="form-control") }}
 
-    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
-    type_id = db.Column(db.String, db.ForeignKey('brand_opl.product_types.type_id'), primary_key=True)
+        {{ form.submit(class="btn btn-primary") }}
+        {{ form.reset(class="btn btn-secondary") }}
+    </form>
+</div>
+
+<!-- Section 2: Search Results -->
+{% if form.is_submitted() and form.validate() %}
+<div id="search-results">
+    <h2>Search Results</h2>
+    {% if products %}
+    <ul>
+        {% for product in products %}
+        <li>
+            <a href="{{ url_for('view_product_details', product_id=product.product_id) }}">
+                {{ product.product_name }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No results found.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
