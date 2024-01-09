@@ -7,6 +7,18 @@
             db.session.add(product_type_map)
 
 
+<div class="form-field">
+                <label for="{{ form.product_type.id }}">{{ form.product_type.label }}</label>
+                <select id="{{ form.product_type.id }}" name="{{ form.product_type.name }}" multiple>
+                    {% for value, label in form.product_type.choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+
+            
+
 class ProductType(db.Model):
     """
     Represents different types of products.
