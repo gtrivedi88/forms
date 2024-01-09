@@ -1,33 +1,48 @@
-<fieldset class="product-partner-group">
-    <legend>Product Partners Information</legend>
+    <fieldset class="product-component-group">
+    <legend>Product Parent Information</legend>
         <div class="form-field">
-            <label for="{{ form.partner.id }}">{{ form.partner.label }}</label>
-            <select id="{{ form.partner.id }}" name="{{ form.partner.name }}" multiple>
-                {% for value, label in form.partner.choices %}
+            <label for="{{ form.component.id }}">{{ form.component.label }}</label>
+            <select id="{{ form.component.id }}" name="{{ form.component.name }}">
+                {% for value, label in form.component.choices %}
                 <option value="{{ value }}">{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
+
+        <div class="form-field">
+            <label for="{{ form.component_type.id }}">{{ form.component_type.label }}</label>
+            <select id="{{ form.component_type.id }}" name="{{ form.component_type.name }}">
+                {% for value, label in form.component_type.choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <br>
+        <button type="button" class="add-component-group" style="margin-top: 10px;">Add more components</button>
+        <button type="button" class="remove-component-group" style="display: none;">Delete</button>
     </fieldset>
 
 
-    class Partner(db.Model):
+
+
+
+class ProductComponents(db.Model):
     """
-    Represents partners.
+    Represents a many-to-many relationship between Product and Components.
 
     Attributes:
-    - partner_id: Unique identifier for the partner.
-    - partner_name: Name of the partner.
-    - persona_id: Persona ID for the partner.
+    - product_id: Foreign key to Product.
+    - component_id: Foreign key to Components.
     """
 
-    __tablename__ = 'partners'
+    __tablename__ = 'product_components'
     __table_args__ = {'schema': 'brand_opl'}
-    __uuid__ = "partner_id"
-    __term__ = "partner_name"
+    __uuid__ = "product_id"
+    __term__ = "component_id"
 
-    partner_id = db.Column(db.String, primary_key=True)
-    partner_name = db.Column(db.String(255), nullable=False)
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    component_id = db.Column(db.String(255), nullable=False, primary_key=True)
+    component_type = db.Column(db.String(255), nullable=False)
 
-    # Relationships
-    product_partners = db.relationship('ProductPartners', backref='partner', lazy='dynamic')
+    # The relationship to the existing Product model
+    product = db.relationship('Product', backref='components', foreign_keys=[product_id])
