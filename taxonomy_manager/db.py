@@ -1,242 +1,283 @@
-{% extends 'base.html' %}
+from flask_sqlalchemy import SQLAlchemy
+import uuid
 
-{% block heading %}
-<h1 class="pf-v5-c-title pf-m-4xl">{{ product.product_name }} Details</h1>
-{% endblock %}
+db = SQLAlchemy()
+
+class Product(db.Model):
+    """
+    Represents a product in the system.
+
+    Attributes:
+    - product_id: Unique identifier for the product.
+    - product_name: Name of the product.
+    - product_description: Description of the product.
+    - upcoming_change: Indicates if there is an upcoming change for the product.
+    - deprecated: Indicates if the product is deprecated.
+    - product_status: Status of the product.
+    - last_updated: Date when the product was last updated.
+    - created: Date when the product was created.
+    - product_status_detail: Additional details about the product status.
+    """
+
+    __tablename__ = 'product'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "product_id"
+    __term__ = "product_name"
+    __hidden__ = True
+
+    product_id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    product_name = db.Column(db.String(255), nullable=False)
+    product_description = db.Column(db.String)
+    upcoming_change = db.Column(db.Boolean)
+    deprecated = db.Column(db.Boolean)
+    product_status = db.Column(db.String(255))
+    last_updated = db.Column(db.Date)
+    created = db.Column(db.Date)
+    product_status_detail = db.Column(db.String(255))
+
+class ProductType(db.Model):
+    """
+    Represents different types of products.
+
+    Attributes:
+    - type_id: Unique identifier for the product type.
+    - product_type: Type of the product.
+    """
+
+    __tablename__ = 'product_types'
+    __table_args__ = {'schema': 'brand_opl'}
+
+    type_id = db.Column(db.String, primary_key=True)
+    product_type = db.Column(db.String(255), nullable=False)
+
+    # Relationships
+    product_types_map = db.relationship('ProductTypeMap', backref='product_type', lazy='dynamic')
+
+class ProductTypeMap(db.Model):
+    """
+    Represents a many-to-many relationship between Product and ProductType.
+
+    Attributes:
+    - product_id: Foreign key to Product.
+    - type_id: Foreign key to ProductType.
+    """
+
+    __tablename__ = 'product_types_map'
+    __table_args__ = {'schema': 'brand_opl'}
+
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    type_id = db.Column(db.String, db.ForeignKey('brand_opl.product_types.type_id'), primary_key=True)
+
+class ProductPortfolios(db.Model):
+    """
+    Represents different portfolios for products.
+
+    Attributes:
+    - category_id: Unique identifier for the product portfolio.
+    - category_name: Name of the product portfolio.
+    """
+
+    __tablename__ = 'product_portfolios'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "category_id"
+    __term__ = "category_name"
+
+    category_id = db.Column(db.String, primary_key=True)
+    category_name = db.Column(db.String(255), nullable=False)
+
+    # Relationships
+    product_portfolio_map = db.relationship('ProductPortfolioMap', backref='product_portfolio', lazy='dynamic')
+
+class ProductPortfolioMap(db.Model):
+    """
+    Represents a many-to-many relationship between Product and ProductPortfolios.
+
+    Attributes:
+    - product_id: Foreign key to Product.
+    - category_id: Foreign key to ProductPortfolios.
+    """
+
+    __tablename__ = 'product_portfolio_map'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "product_id"
+    __term__ = "category_id"
+
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    category_id = db.Column(db.String, db.ForeignKey('brand_opl.product_portfolios.category_id'), primary_key=True)
+
+class ProductNotes(db.Model):
+    """
+    Represents notes associated with a product.
+
+    Attributes:
+    - product_id: Foreign key to Product.
+    - product_note: Note associated with the product.
+    """
+
+    __tablename__ = 'product_notes'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "product_id"
+    __term__ = "product_note"
+
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    product_note = db.Column(db.String(65535), nullable=False)
+
+    # The relationship to the Product model
+    product = db.relationship('Product', backref=db.backref('product_notes', lazy='dynamic'))
 
 
-{% block content %}
-{% if product %}
+class ProductReferences(db.Model):
+    """
+    Represents references associated with a product.
 
-<form id="my-form">
+    Attributes:
+    - product_id: Foreign key to Product.
+    - product_link: Link associated with the product reference.
+    - link_description: Description associated with the product reference.
 
-    <fieldset class="product-information-group">
-        <legend>Product Information</legend>
+    Relationships:
+    - product: Relationship to Product for easy access to the associated product references.
+    """
 
-        <div class="form-group">
-            <div class="form-field">
-                <label for="product_name">Product Name *</label>
-                <textarea id="product_name" name="product_name" cols="40" readonly>{{ product.product_name }}</textarea>
-            </div>
+    __tablename__ = 'product_references'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "product_id"
+    __term__ = "product_link"
 
-            <div class="form-field">
-                <label for="product_type">Product Type *</label>
-                <select id="product_type" name="product_type" multiple readonly>
-                    {% for product_type in product.product_types %}
-                    <option value="{{ product_type.type_id }}" selected>{{ product_type.product_type }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    product_link = db.Column(db.String(65535), nullable=False)
+    link_description = db.Column(db.String(65535), nullable=False)
 
-        <div class="form-group">
-            <div class="form-field">
-                <label for="product_description">Product Description</label>
-                <textarea id="product_description" name="product_description" cols="40"
-                    readonly>{{ product.product_description }}</textarea>
-            </div>
+    # The relationship to the Product model
+    product = db.relationship('Product', backref=db.backref('product_references', lazy='dynamic'))
 
-            <div class="form-field">
-                <label for="product_portfolio">Product Portfolio</label>
-                <select id="product_portfolio" name="product_portfolio" multiple readonly>
-                    {% for portfolio in product.product_portfolios %}
-                    <option value="{{ portfolio.category_id }}" selected>{{ portfolio.category_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
 
-        <div class="form-group">
-            <div class="form-field">
-                <label for="product_notes">Product Notes</label>
-                <textarea id="product_notes" name="product_notes" cols="40"
-                    readonly>{{ product.product_notes }}</textarea>
-            </div>
-        </div>
+class ProductAlias(db.Model):
+    """
+    Represents aliases associated with a product.
 
-    </fieldset>
+    Attributes:
+    - alias_id: Unique identifier for the alias.
+    - product_id: Foreign key to Product.
+    - alias_name: Name associated with the alias.
+    - alias_type: Type of the alias (Short, Acronym, Cli, Former).
+    - alias_approved: Indicates if the alias is approved.
+    - previous_name: Indicates if the alias is a previous name.
+    - tech_docs: Indicates if the alias is approved for tech docs.
+    - tech_docs_cli: Indicates if the alias is approved for tech docs code/CLI.
+    - alias_notes: Notes associated with the alias.
 
-        <br>
-        
-        <fieldset class="product-reference-group">
-            <legend>Product Reference Information</legend>
-            <div id="product-references">
-                {% for i in range(product_reference_count) %}
-                <div class="product-reference-pair">
-                    <div class="form-field">
-                        <label for="{{ form.product_link.id }}">Product Reference</label>
-                        {{ form.product_link(disabled=true) }}
-                    </div>
-        
-                    <div class="form-field">
-                        <label for="{{ form.link_description.id }}">Reference Description</label>
-                        {{ form.link_description(disabled=true) }}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </fieldset>
-        
-        <br>
-        
-        <fieldset class="product-status-group">
-            <legend>Product Status Details</legend>
-            <div class="form-group">
-                <div class="checkbox-field">
-                    {{ form.deprecated(disabled=true) }}
-                    <label for="{{ form.deprecated.id }}">{{ form.deprecated.label }}</label>
-                </div>
-        
-                <div class="checkbox-field">
-                    {{ form.upcoming_change(disabled=true) }}
-                    <label for="{{ form.upcoming_change.id }}">{{ form.upcoming_change.label }}</label>
-                </div>
-            </div>
-        
-            <br>
-        
-            <div class="form-group">
-                <div class="form-field">
-                    <label for="{{ form.product_status.id }}">Status</label>
-                    {{ form.product_status(id="status-dropdown", class="status-dropdown", disabled=true) }}
-                </div>
-        
-                <div class="form-field">
-                    <label for="{{ form.product_status_detail.id }}">Status details</label>
-                    {{ form.product_status_detail(id="status-details-dropdown", class="status-details-dropdown", disabled=true)
-                    }}
-                </div>
-            </div>
-        </fieldset>
-        
-        <br>
-        
-        <fieldset class="product-alias-group">
-            <legend>Product Alias Information</legend>
-            <div class="form-group">
-                <div class="form-field">
-                    <label for="{{ form.alias_name.id }}">{{ form.alias_name.label }}</label>
-                    {{ form.alias_name(cols=40, disabled=true) }}
-                </div>
-        
-                <div class="form-field">
-                    <label for="{{ form.alias_type.id }}">{{ form.alias_type.label }}</label>
-                    {{ form.alias_type(id="alias-type-dropdown", class="alias-type-dropdown", disabled=true) }}
-                </div>
-            </div>
-        
-            <br>
-        
-            <div class="form-group">
-                <div class="checkbox-field">
-                    {{ form.alias_approved(disabled=true) }}
-                    <label for="{{ form.alias_approved.id }}" data-toggle="tooltip"
-                        title="Leaving it blank for unapproved aliases.">{{ form.alias_approved.label }}</label>
-                </div>
-        
-                <div class="checkbox-field">
-                    {{ form.previous_name(disabled=true) }}
-                    <label for="{{ form.previous_name.id }}">{{ form.previous_name.label }}</label>
-                </div>
-        
-                <div class="checkbox-field">
-                    {{ form.tech_docs(disabled=true) }}
-                    <label for="{{ form.tech_docs.id }}">{{ form.tech_docs.label }}</label>
-                </div>
-        
-                <div class="checkbox-field">
-                    {{ form.tech_docs_cli(disabled=true) }}
-                    <label for="{{ form.tech_docs_cli.id }}">{{ form.tech_docs_cli.label }}</label>
-                </div>
-            </div>
-        
-            <br>
-        
-            <label for="{{ form.alias_notes.id }}">{{ form.alias_notes.label }}</label>
-            {{ form.alias_notes(cols=40, disabled=true) }}
-        
-        </fieldset>
-        
-        <br>
-        
-        <fieldset class="product-release-info">
-            <legend>Product Release Information</legend>
-        
-            <label for="{{ form.product_release.id }}">{{ form.product_release.label }}</label>
-            {{ form.product_release(disabled=true) }}
-        
-            <br>
-        
-            <label for="{{ form.product_release_detail.id }}">{{ form.product_release_detail.label }}</label>
-            {{ form.product_release_detail(cols=40, disabled=true) }}
-        
-            <br>
-        
-            <label for="{{ form.product_release_link.id }}">{{ form.product_release_link.label }}</label>
-            {{ form.product_release_link(cols=40, disabled=true) }}
-        </fieldset>
-        
-        <fieldset class="product-eol-info">
-            <legend>Product End of Life Information</legend>
-        
-            <label for="{{ form.product_eol.id }}">{{ form.product_eol.label }}</label>
-            {{ form.product_eol(disabled=true) }}
-        
-            <br>
-        
-            <label for="{{ form.product_eol_detail.id }}">{{ form.product_eol_detail.label }}</label>
-            {{ form.product_eol_detail(cols=40, disabled=true) }}
-        
-            <br>
-        
-            <label for="{{ form.product_eol_link.id }}">{{ form.product_eol_link.label }}</label>
-            {{ form.product_eol_link(cols=40, disabled=true) }}
-        </fieldset>
-        
-        <br><br>
-        
-        <fieldset class="product-partner-group">
-            <legend>Product Partners Information</legend>
-            <div class="form-field">
-                <label for="{{ form.partner.id }}">{{ form.partner.label }}</label>
-                <select id="{{ form.partner.id }}" name="{{ form.partner.name }}" multiple disabled>
-                    {% for value, label in form.partner.choices %}
-                    <option value="{{ value }}" {% if value in selected_partner_ids %} selected {% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </fieldset>
-        
-        <br><br>
-        
-        <fieldset class="product-component-group">
-            <legend>Product Parent Information</legend>
-            <div class="form-field">
-                <label for="{{ form.component.id }}">{{ form.component.label }}</label>
-                <select id="{{ form.component.id }}" name="{{ form.component.name }}" disabled>
-                    {% for value, label in form.component.choices %}
-                    <option value="{{ value }}" {% if value==selected_component_id %} selected {% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        
-            <div class="form-field">
-                <label for="{{ form.component_type.id }}">{{ form.component_type.label }}</label>
-                <select id="{{ form.component_type.id }}" name="{{ form.component_type.name }}" disabled>
-                    {% for value, label in form.component_type.choices %}
-                    <option value="{{ value }}" {% if value==selected_component_type %} selected {% endif %}>{{ label }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <br>
-        </fieldset>
-        
-        <br>
-    </form>
+    Relationships:
+    - product: Relationship to Product for easy access to the associated product.
+    """
 
-{% else %}
-<p>No product details available.</p>
-{% endif %}
+    __tablename__ = 'product_alias'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "alias_id"
+    __term__ = "alias_name"
 
-{% endblock %}
+    alias_id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), nullable=False)
+    alias_name = db.Column(db.String(255), nullable=False)
+    alias_type = db.Column(db.String(255), nullable=False)
+    alias_approved = db.Column(db.Boolean, nullable=True)
+    previous_name = db.Column(db.Boolean, nullable=True)
+    tech_docs = db.Column(db.Boolean, nullable=True)
+    tech_docs_cli = db.Column(db.Boolean, nullable=True)
+    alias_notes = db.Column(db.String(65535))
+
+    # The relationship to the Product model
+    product = db.relationship('Product', backref=db.backref('aliases', lazy='dynamic'))
+
+
+class ProductMktLife(db.Model):
+    """
+    Represents marketing life information for a product.
+
+    Attributes:
+    - product_id: Foreign key to Product.
+    - product_release: Release date of the product.
+    - product_release_detail: Details about the product release.
+    - product_release_link: Reference link for the product release.
+    - product_eol: End of Life date of the product.
+    - product_eol_detail: Details about the End of Life of the product.
+    - product_eol_link: Reference link for the End of Life of the product.
+
+    Relationships:
+    - product: Relationship to Product for easy access to the associated product.
+    """
+
+    __tablename__ = 'product_mkt_life'
+    __table_args__ = {'schema': 'brand_opl'}
+
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    product_release = db.Column(db.Date, nullable=True)
+    product_release_detail = db.Column(db.String(255))
+    product_release_link = db.Column(db.String(255))
+    product_eol = db.Column(db.Date, nullable=True)
+    product_eol_detail = db.Column(db.String(255))
+    product_eol_link = db.Column(db.String(255))
+
+    # The relationship to the Product model
+    product = db.relationship('Product', backref=db.backref('mkt_life', lazy='dynamic'))
+
+
+class Partner(db.Model):
+    """
+    Represents partners.
+
+    Attributes:
+    - partner_id: Unique identifier for the partner.
+    - partner_name: Name of the partner.
+    - persona_id: Persona ID for the partner.
+    """
+
+    __tablename__ = 'partners'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "partner_id"
+    __term__ = "partner_name"
+
+    partner_id = db.Column(db.String, primary_key=True)
+    partner_name = db.Column(db.String(255), nullable=False)
+
+    # Relationships
+    product_partners = db.relationship('ProductPartners', backref='partner', lazy='dynamic')
+
+class ProductPartners(db.Model):
+    """
+    Represents a many-to-many relationship between Product and Partners.
+
+    Attributes:
+    - product_id: Foreign key to Product.
+    - partner_id: Foreign key to Partners.
+    """
+
+    __tablename__ = 'product_partners'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "product_id"
+    __term__ = "partner_id"
+
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    partner_id = db.Column(db.String, db.ForeignKey('brand_opl.partners.partner_id'), primary_key=True)
+
+
+class ProductComponents(db.Model):
+    """
+    Represents a many-to-many relationship between Product and Components.
+
+    Attributes:
+    - product_id: Foreign key to Product.
+    - component_id: Foreign key to Components.
+    """
+
+    __tablename__ = 'product_components'
+    __table_args__ = {'schema': 'brand_opl'}
+    __uuid__ = "product_id"
+    __term__ = "component_id"
+
+    product_id = db.Column(db.String, db.ForeignKey('brand_opl.product.product_id'), primary_key=True)
+    component_id = db.Column(db.String(255), nullable=False, primary_key=True)
+    component_type = db.Column(db.String(255), nullable=False)
+
+    # The relationship to the existing Product model
+    product = db.relationship('Product', backref='components', foreign_keys=[product_id])
